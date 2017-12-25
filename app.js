@@ -22,15 +22,17 @@ var server = restify.createServer();
 
 // Create chat connector for communicating with the Bot Framework Service
 var connector = new builder.ChatConnector({
-  appId: '1c9a8a8a-1c7a-4cfa-aa5f-c70a41304da8',
-  appPassword: 'ahizAC17!vttMAYKH615*!$'
+  appId: '3920ca45-4176-43f6-aaf6-be7b4804f750', //'1c9a8a8a-1c7a-4cfa-aa5f-c70a41304da8'
+  appPassword: 'xonaTNP3)+dzcBQAD6844#='  //'ahizAC17!vttMAYKH615*!$'
 });
+
 
 server.listen(process.env.port || process.env.PORT || 7070, function() {
   console.log('%s listening to %s', server.name, server.url);
 });
 
-server.post('/webhook', connector.listen());
+//server.post('/webhook', connector.listen());
+server.post('/api/messages', connector.listen());
 
 var bot = new builder.UniversalBot(connector);
 
