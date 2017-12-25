@@ -1,0 +1,20 @@
+{
+  "name": "Helpdesk-Bot",
+  "version": "",
+  "scripts": {
+    "start": "node SailsWrapper.js"
+  },
+  "dependencies": {
+    "api-ai-recognizer": "^1.1.1",
+    "apiai": "^4.0.3",
+    "bluebird": "^3.5.1",
+    "botbuilder": "^3.11.0",
+    "dotenv-extended": "^2.0.1",
+    "enum": "^2.5.0",
+    "hashmap": "^2.3.0",
+    "ignore-case": "^0.1.0",
+    "mysql": "^2.15.0",
+    "restify": "^6.3.2",
+    "swagger-client": "^3.4.2"
+  }
+}
