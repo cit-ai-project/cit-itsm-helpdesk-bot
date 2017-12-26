@@ -2,7 +2,7 @@
   "name": "Helpdesk-Bot",
   "version": "",
   "scripts": {
-    "start": "node SailsWrapper.js"
+    "start": "node app.js"
   },
   "dependencies": {
     "api-ai-recognizer": "^1.1.1",
