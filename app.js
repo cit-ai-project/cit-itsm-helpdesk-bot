@@ -44,7 +44,7 @@ server.post('/api/messages', connector.listen());
 
 var bot = new builder.UniversalBot(connector);
 
-var recognizer = new apiairecognizer('63b8f1eb608f4e0ab4e8be8e436aac9e');
+var recognizer = new apiairecognizer('9f3aa1a87cb84cf1a3c2159110a52643');
 
 var intents = new builder.IntentDialog({
     recognizers: [recognizer],
