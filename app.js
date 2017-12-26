@@ -34,9 +34,6 @@ var connector = new builder.ChatConnector({
     appPassword: 'xonaTNP3)+dzcBQAD6844#='
 });
 
-server.listen(process.env.port || process.env.PORT || 7070, function () {
-    console.log('%s listening to %s', server.name, server.url);
-});
 
 
 //server.post('/webhook', connector.listen());
@@ -44,14 +41,19 @@ server.post('/api/messages', connector.listen());
 
 var bot = new builder.UniversalBot(connector);
 
-var recognizer = new apiairecognizer('9f3aa1a87cb84cf1a3c2159110a52643');
-
+var recognizer = new apiairecognizer('9f3aa1a87cb84cf1a3c2159110a52643'); //63b8f1eb608f4e0ab4e8be8e436aac9e
+                                        
 var intents = new builder.IntentDialog({
     recognizers: [recognizer],
     intentThreshold: 0.2,
     recognizeOrder: builder.RecognizeOrder.series
 
 });
+
+server.listen(process.env.port || process.env.PORT || 7070, function () {
+    console.log('%s sdfsdf listening to %s', server.name, server.url);
+});
+
 
 bot.dialog('/', intents);
 
@@ -105,11 +107,18 @@ intents.matches('Generic Problem With PC', function (session, args) {
     session.sendTyping();
 
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
-        var fulfillment =
-            builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-        if (fulfillment && fulfillment.entity != '') {
-            var speech = fulfillment.entity;
-            session.send(speech);
+
+        // This is for Non-supported issues
+        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0
+            || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+            session.send('Sorry, i can help you on Computer related issues only...!');
+        } else {
+            var fulfillment =
+                builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
+            if (fulfillment && fulfillment.entity != '') {
+                var speech = fulfillment.entity;
+                session.send(speech);
+            }
         }
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
@@ -132,50 +141,56 @@ intents.matches('Specific Problem With PC', function (session, args) {
 
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var userInput = session.message.text.toLowerCase();
-        console.log(' -----> userInput: ', userInput);
-        var pcSpecificFulfillment =
-            builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Specific');
+        // This is for Non-supported issues
+        if(userInput.indexOf("printer") >= 0 || userInput.indexOf("scanner") >= 0 || userInput.indexOf("tablet") >= 0
+            || userInput.indexOf("fax") >= 0 || userInput.indexOf("iPad") >= 0 || userInput.indexOf("iPhone") >= 0){
+            session.send('Sorry, i can help you on Computer related issues only...!');
+        } else {
+            
+            console.log(' -----> userInput: ', userInput);
+            var pcSpecificFulfillment =
+                builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Specific');
 
-        var entity;
-        var entitySubStr1, entitySubStr2;
+            var entity;
+            var entitySubStr1, entitySubStr2;
 
-        if (pcSpecificFulfillment && pcSpecificFulfillment.entity != '') {
-            console.log(' -----> pcSpecificFulfillment.entity: ', pcSpecificFulfillment.entity);
-            entity = pcSpecificFulfillment.entity;
-            //If there is a space between a search string
-            if (entity.indexOf(' ') >= 0) {
-                entitySubStr1 = entity.split(' ')[0];
-                entitySubStr2 = entity.split(' ')[1];
+            if (pcSpecificFulfillment && pcSpecificFulfillment.entity != '') {
+                console.log(' -----> pcSpecificFulfillment.entity: ', pcSpecificFulfillment.entity);
+                entity = pcSpecificFulfillment.entity;
+                //If there is a space between a search string
+                if (entity.indexOf(' ') >= 0) {
+                    entitySubStr1 = entity.split(' ')[0];
+                    entitySubStr2 = entity.split(' ')[1];
+                }
+
+                if ((userInput.indexOf(entity) >= 0)
+                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
+
+                    session.send('Got it. Can you please specify your asset name/id to create a trouble ticket?');
+
+                }
             }
 
-            if ((userInput.indexOf(entity) >= 0)
-                || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
+            var pcGenericFulfillment =
+                builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
 
-                session.send('Got it. Can you please specify your asset name/id to create a trouble ticket?');
+            if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
+                console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
+                entity = pcGenericFulfillment.entity;
 
+                //If there is a space between a search string
+                if (entity.indexOf(' ') >= 0) {
+                    entitySubStr1 = entity.split(' ')[0];
+                    entitySubStr2 = entity.split(' ')[1];
+                }
+
+                if ((userInput.indexOf(entity) >= 0)
+                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
+
+                    session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
+                }
             }
         }
-
-        var pcGenericFulfillment =
-            builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
-
-        if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
-            console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
-            entity = pcGenericFulfillment.entity;
-
-            //If there is a space between a search string
-            if (entity.indexOf(' ') >= 0) {
-                entitySubStr1 = entity.split(' ')[0];
-                entitySubStr2 = entity.split(' ')[1];
-            }
-
-            if ((userInput.indexOf(entity) >= 0)
-                || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
-
-                session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
-            }
-        }
-
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
     }
@@ -496,10 +511,16 @@ intents.matches('Can\'t Figure Out The Testing Asset Id', function (session, arg
 // Enabling SMALL TALK
 
 intents.onDefault(function (session, args) {
-
+    
+    console.log('----> intents: ', intents);
+    console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
+    console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
+    
     session.sendTyping();
 
-    if (typeof map.get('prev_intent') !== 'undefined' && map.get('prev_intent') &&
+    if (typeof map.get('prev_intent') === 'undefined' && typeof map.get('prev_input') === 'undefined') {
+        session.send("Hello, I am Liz, a virtual agent for IT related services.  At the moment, I can help you to fix your problems related to laptop and desktop and can create a ticket if needed. For all other queries, you may want to call the IT helpdesk toll free number 1-800-123-4567.  How can I help you now ?");
+    } else if (typeof map.get('prev_intent') !== 'undefined' && map.get('prev_intent') &&
         (map.get('prev_intent') == 'Get N Validate Asset Id' ||
             map.get('prev_intent') == 'Yes Computer Issue')) {
         session.send('Asset ID is invalid. Please try again with the proper one.');
@@ -534,18 +555,13 @@ intents.onDefault(function (session, args) {
 
 // Code Starts By Vijay
 require('dotenv-extended').load();
-var builder = require('botbuilder');
-var restify = require('restify');
 var Swagger = require('swagger-client');
 var Promise = require('bluebird');
 var url = require('url');
 var fs = require('fs');
 var util = require('util');
-var apiai = require("apiai");
-var apiairecognizer = require('api-ai-recognizer');
 var request = require('request');
 var ignoreCase = require('ignore-case');
-var mysql = require('mysql');
 var http = require('http');
 
 var extServerOptions = {
