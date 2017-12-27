@@ -306,10 +306,12 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
 
             session.send(' Let me check the Asset ID….');
 
+             /*
             var selQuery =
                 'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
             connection.connect();
 
+           
             if (connection != null) {
                 connection.query(selQuery, ['ram-lp'], function (err, result) {
                     console.log(' ------- Asset name is found @ DB -------- ');
@@ -340,7 +342,18 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                             ' Asset id is not found in our asset list.... Please check again.');
                     }
                 });
-            }
+            } */
+
+            setTimeout(function () {
+                session.send(
+                    'OK, I am able to figure out the Asset ID in our asset list.');
+            }, 6000);
+
+            setTimeout(function () {
+
+                session.send(
+                    'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
+            }, 9000);
 
 
         } else {
@@ -348,9 +361,10 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
             session.send(' Let me check the Asset ID in our database….');
             session.sendTyping();
 
+            /*
             var strTokens = session.message.text.toLowerCase().split(' ');
 
-
+            
             strTokens.forEach(function (element) {
 
                 if (element != '' &&
@@ -395,7 +409,13 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                 } else {
                     session.send('Oops..! It seems the given Asset ID is invalid.');
                 }
-            }, this);
+            }, this);  */
+
+            setTimeout(function () {
+                session.send('The given Asset ID is not in the Asset List. Can you please check once again?.');
+            }, 6000);
+            
+
         }
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
