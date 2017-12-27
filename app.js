@@ -190,6 +190,12 @@ intents.matches('Specific Problem With PC', function (session, args) {
                     session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
                 }
             }
+
+            if(pcGenericFulfillment == null && pcSpecificFulfillment == null){
+                
+                session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
+            }
+
         }
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
