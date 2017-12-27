@@ -35,7 +35,6 @@ var connector = new builder.ChatConnector({
 });
 
 
-
 //server.post('/webhook', connector.listen());
 server.post('/api/messages', connector.listen());
 
@@ -148,6 +147,27 @@ intents.matches('Specific Problem With PC', function (session, args) {
         } else {
             
             console.log(' -----> userInput: ', userInput);
+
+            var pcGenericFulfillment =
+            builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
+
+            if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
+                console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
+                entity = pcGenericFulfillment.entity;
+
+                //If there is a space between a search string
+                if (entity.indexOf(' ') >= 0) {
+                    entitySubStr1 = entity.split(' ')[0];
+                    entitySubStr2 = entity.split(' ')[1];
+                }
+
+                if ((userInput.indexOf(entity) >= 0)
+                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
+
+                    session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
+                }
+            }
+
             var pcSpecificFulfillment =
                 builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Specific');
 
@@ -168,26 +188,6 @@ intents.matches('Specific Problem With PC', function (session, args) {
 
                     session.send('Got it. Can you please specify your asset name/id to create a trouble ticket?');
 
-                }
-            }
-
-            var pcGenericFulfillment =
-                builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
-
-            if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
-                console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
-                entity = pcGenericFulfillment.entity;
-
-                //If there is a space between a search string
-                if (entity.indexOf(' ') >= 0) {
-                    entitySubStr1 = entity.split(' ')[0];
-                    entitySubStr2 = entity.split(' ')[1];
-                }
-
-                if ((userInput.indexOf(entity) >= 0)
-                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
-
-                    session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
                 }
             }
 
@@ -307,7 +307,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
             session.send(' Let me check the Asset ID….');
 
             var selQuery =
-                'select count(*) count from asset where asset_name = ? and asset_desc = \'java-ramanathan\'';
+                'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
             connection.connect();
 
             if (connection != null) {
@@ -359,7 +359,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                     connection.connect();
 
                     var selQuery =
-                        'select count(*) count from asset where asset_name = ? and asset_desc = \'java-ramanathan\'';
+                        'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
                     if (connection != null) {
                         connection.query(selQuery, [element], function (err, result) {
                             console.log(' ------- Asset name is found @ DB -------- ');
@@ -383,7 +383,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                                 setTimeout(function () {
 
                                     session.send(
-                                        'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
+                                        'Thank you, I have created a ticket for you. The ticket id is HD003457. Someone from IT department will attend your problem within 24 hours.');
                                 }, 9000);
 
                             } else {
@@ -428,7 +428,7 @@ intents.matches('My PC', function (session, args) {
             setTimeout(function () {
 
                 session.send(
-                    'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
+                    'Thank you, I have created a ticket for you. The ticket id is HD003458. Someone from IT department will attend your problem within 24 hours.');
             }, 9000);
         }
 
@@ -879,4 +879,3 @@ intents.matches('Ticket Details', function (session, args) {
         });
     }
 });
-
