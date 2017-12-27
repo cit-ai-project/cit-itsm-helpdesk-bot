@@ -21,7 +21,7 @@ var mysql = require('mysql');
 var server = restify.createServer();
 
 var connection = mysql.createConnection({
-    host: '192.168.61.155', //localhost
+    host: '192.168.61.162', //localhost
     port: '3306',
     user: 'root',
     password: 'root',
