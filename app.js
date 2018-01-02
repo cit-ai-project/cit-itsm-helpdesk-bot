@@ -590,15 +590,15 @@ var request = require('request');
 var ignoreCase = require('ignore-case');
 var http = require('http');
 
+/*
 var extServerOptions = {
     host: 'localhost',
     port: '1337',
     path: '/userTicket/',
     method: 'GET'
 };
+*/
 
-
-// Swagger client for Bot Connector API
 var connectorApiClient = new Swagger(
     {
         url: 'https://raw.githubusercontent.com/Microsoft/BotBuilder/master/CSharp/Library/Microsoft.Bot.Connector.Shared/Swagger/ConnectorAPI.json',
@@ -613,7 +613,6 @@ intents.matches('Tickets with Status', function (session, args) {
     var severity = '';
     var priority = '';
     if (args.entities != null) {
-        console.log('--if--> type: ', args.entities.length);
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
                 console.log("status--", status);
@@ -630,36 +629,37 @@ intents.matches('Tickets with Status', function (session, args) {
     if (status == '' || status == null) {
         status = 'new';
     }
-    console.log("status-2" + status);
 
-
-    /*var entityIndex = session.message.text.toLowerCase();
-    session.sendTyping();*/
     console.log("status-", status);
 
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S WHERE T.STATUS_ID = S.STATUS_ID AND STATUS_NAME = ? ORDER BY SEVERITY_ID DESC";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, status, function (err, rows, fields) {
+            if (err) {
+                console.log(' err: ', err);
+                throw err;
+            }
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
             console.log(' selQuery rows: ', rows);
             console.log(' selQuery rows: ', rows.length);
 
-
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                 }
-                session.send("Please find the below recent tickets for the status '" + status + "' <Br>" + tickets);
+                session.send("Check the below recent tickets for the status '" + status + "' <Br>" + tickets);
+            } else {
+                session.send("Sorry, you dont have any tickets right now.");
             }
-
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -671,7 +671,6 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
     var severity = '';
     var priority = '';
     if (args.entities != null) {
-        console.log('--if--> type: ', args.entities.length);
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
                 status = args.entities[i].entity;
@@ -691,18 +690,17 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
         priority = 'critical';
     }
 
-    
+
 
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
 
     var params = [status, priority];
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.PRIORITY_ID =  P.PRIORITY_ID  AND T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ? AND P.PRIORITY_NAME = ?  ORDER BY SEVERITY_ID DESC";
-    connection.connect();
     if (connection != null) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
+            console.log(' selQuery rows ', rows);
             if (err) {
                 console.log('error', err.message);
                 throw err;
@@ -710,19 +708,19 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                 }
                 console.log('tickets:', tickets);
-                session.send("Please find the below " + priority + " priority tickets for the status '" + status + "'. <Br>" + tickets);
+                session.send("Check the below " + priority + " priority tickets for the status '" + status + "'. <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -753,12 +751,12 @@ intents.matches('Tickets with Status & Severity', function (session, args) {
         severity = 'critical';
     }
 
-    
+
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
 
     var params = [status, severity];
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE , HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ?  AND  SE.SEVERITY_NAME = ? ORDER BY T.PRIORITY_ID DESC";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
@@ -773,18 +771,20 @@ intents.matches('Tickets with Status & Severity', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                     console.log('$$$ item: ', item);
                 }
-                session.send("Please find the below " + severity + "severity tickets for the status '" + status + "'. <Br>" + tickets);
+                session.send("Check the below " + severity + "severity tickets for the status '" + status + "'. <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
+
         });
     }
 });
@@ -823,13 +823,12 @@ intents.matches('My Tickets', function (session, args) {
     }
 
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
-    
+
     var params = [status, severity, priority, curUser];
 
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S,  HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P WHERE T.STATUS_ID = S.STATUS_ID AND T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.PRIORITY_ID = P.PRIORITY_ID AND S.STATUS_NAME LIKE ? AND SE.SEVERITY_NAME LIKE ? AND P.PRIORITY_NAME LIKE ? AND T.ASSIGNED_TO = ? ORDER BY T.SEVERITY_ID DESC";
-    connection.connect();
+    console.log('selQuery', selQuery);
     if (connection != null) {
-        //connection.query(selQuery, status, severity, function (err, rows, fields) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
@@ -842,18 +841,19 @@ intents.matches('My Tickets', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                     console.log('$$$ item: ', item);
                 }
-                session.send("Please find the below " + severity + " priority tickets for the status " + status + ". <Br>" + tickets + '-');
+                session.send("Kindly check the below tickets assigned to you.  <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -872,11 +872,9 @@ intents.matches('Ticket Details', function (session, args) {
             }
         }
     }
- 
-
     console.log('ticketId ', ticketId);
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE,S.STATUS_NAME,SE.SEVERITY_NAME, T.TICKET_DESC,T.ASSIGNED_TO,T.ASSET_ID FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND T.PRIORITY_ID = P.PRIORITY_ID AND T.TICKET_ID=?";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, ticketId, function (err, rows, fields) {
             console.log(" ------- SELECT LIST  -------- ");
@@ -887,15 +885,140 @@ intents.matches('Ticket Details', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('string-', string);
+                console.log('curTicket-', session.userData.curTicket);
                 var ticketsDetails = 'Ticket ID: ' + json[0].TICKET_ID + '<BR> Ticket Title: ' + json[0].TICKET_TITLE + '<BR> Title Desc: ' + json[0].STATUS_NAME + '<BR> Severity: ' + json[0].SEVERITY_NAME + '<BR> Assigned To: ' + json[0].ASSIGNED_TO;
 
-                session.send("Please find the ticket details below <BR>" + ticketsDetails);
+                session.send("Check down the ticket details as below <BR> <BR>" + ticketsDetails);
             } else {
 
                 session.send("There is no ticket with this ID:" + ticketId);
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
+
         });
+    }
+});
+intents.matches('Update Ticket Status', [function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var tostatus = '';
+    var priority = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId- ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'tostatus') {
+                tostatus = args.entities[i].entity;
+                console.log('tostatus- ', args.entities[i].entity);
+            }
+        }
+    }
+    console.log('ticketId- ', ticketId);
+
+    if (ticketId == '' || ticketId == null) {
+        console.log('curTicket-', session.userData.curTicket);
+        console.log('curTicket.length-', session.userData.curTicket.length);
+        if (session.userData.curTicket.length > 0) {
+            var o = session.userData.curTicket;
+            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
+        }
+    }else {
+        tickdetarr = ticketId;
+    }
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toStatus- ', tostatus);
+
+    session.userData.updateTicket = [];
+    session.userData.updateTicket = tickdetarr;
+    session.userData.updateStatus = [];
+    session.userData.updateStatus = tostatus;
+
+    builder.Prompts.confirm(session, "Gonna update the status to "+tostatus+" for the ticket id:"+tickdetarr+". Please confirm.");
+},
+function (session, results) {
+    console.log('results.response',results.response);
+    
+    if (results.response) {
+        session.beginDialog('updateStatus');
+    } else {
+        session.send('Okay.');
+    }
+}]);
+
+bot.dialog('updateStatus', function (session) {
+
+
+    console.log('updateTicket-', session.userData.updateTicket);
+    console.log('updateStatus-', session.userData.updateStatus);
+    var status = session.userData.updateStatus;
+    var tickdetarr=session.userData.updateTicket;
+    var params = [status, tickdetarr];
+    var selQuery = "update helpdesk.ticket set status_id = (select status_id from helpdesk.status where status_name=?) where ticket_id IN (?)";
+    if (connection != null) {
+        connection.query(selQuery, params, function (err, result) {
+            if (err) {
+                console.log(' err: ', err);
+                throw err;
+            }
+            console.log(" ------- update status -------- ");
+            console.log(' Update rows affected: ', result.affectedRows);
+            session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
+            session.endDialog();
+        });
+    }
+});
+
+intents.matches('Assign Ticket', function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var severity = '';
+    var priority = '';
+    var toassign = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'toassign') {
+                toassign = args.entities[i].entity;
+                console.log('toassign ', args.entities[i].entity);
+            }
+        }
+    }
+
+    if (ticketId == '' || ticketId == null) {
+        console.log('curTicket-', session.userData.curTicket);
+        console.log('curTicket.length-', session.userData.curTicket.length);
+        if (session.userData.curTicket.length > 0) {
+            var o = session.userData.curTicket;
+            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
+        }
+    }else {
+        tickdetarr = ticketId;
+    }
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toassign- ', toassign);
+    var params = [status, tickdetarr];
+    if (ticketId == null || ticketId == '') {
+        var selQuery = "update helpdesk.ticket  set assigned_to  = ? where ticket_id = ?;";
+        if (connection != null) {
+            connection.query(selQuery, params, function (err, result) {
+                if (err) {
+                    console.log(' err: ', err);
+                    throw err;
+                }
+                console.log(" ------- update status -------- ");
+                console.log(' Update rows affected: ', result.affectedRows);
+                session.send('Status has been updated to ' + status + ' for ticket id:' + ticketId);
+
+            });
+        }
+    } else {
+        session.send('seems there is no valid ticketid,  can you please provide that.');
     }
 });
