@@ -41,7 +41,7 @@ server.post('/api/messages', connector.listen());
 var bot = new builder.UniversalBot(connector);
 
 var recognizer = new apiairecognizer('9f3aa1a87cb84cf1a3c2159110a52643'); //63b8f1eb608f4e0ab4e8be8e436aac9e
-                                        
+
 var intents = new builder.IntentDialog({
     recognizers: [recognizer],
     intentThreshold: 0.2,
@@ -108,8 +108,8 @@ intents.matches('Generic Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
 
         // This is for Non-supported issues
-        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0
-            || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+        if (session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0
+            || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0) {
             session.send('Sorry, i can help you on Computer related issues only...!');
         } else {
             var fulfillment =
@@ -141,33 +141,12 @@ intents.matches('Specific Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var userInput = session.message.text.toLowerCase();
         // This is for Non-supported issues
-        if(userInput.indexOf("printer") >= 0 || userInput.indexOf("scanner") >= 0 || userInput.indexOf("tablet") >= 0
-            || userInput.indexOf("fax") >= 0 || userInput.indexOf("iPad") >= 0 || userInput.indexOf("iPhone") >= 0){
+        if (userInput.indexOf("printer") >= 0 || userInput.indexOf("scanner") >= 0 || userInput.indexOf("tablet") >= 0
+            || userInput.indexOf("fax") >= 0 || userInput.indexOf("iPad") >= 0 || userInput.indexOf("iPhone") >= 0) {
             session.send('Sorry, i can help you on Computer related issues only...!');
         } else {
-            
+
             console.log(' -----> userInput: ', userInput);
-
-            var pcGenericFulfillment =
-            builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
-
-            if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
-                console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
-                entity = pcGenericFulfillment.entity;
-
-                //If there is a space between a search string
-                if (entity.indexOf(' ') >= 0) {
-                    entitySubStr1 = entity.split(' ')[0];
-                    entitySubStr2 = entity.split(' ')[1];
-                }
-
-                if ((userInput.indexOf(entity) >= 0)
-                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
-
-                    session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
-                }
-            }
-
             var pcSpecificFulfillment =
                 builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Specific');
 
@@ -191,8 +170,28 @@ intents.matches('Specific Problem With PC', function (session, args) {
                 }
             }
 
-            if(pcGenericFulfillment == null && pcSpecificFulfillment == null){
-                
+            var pcGenericFulfillment =
+                builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
+
+            if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
+                console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
+                entity = pcGenericFulfillment.entity;
+
+                //If there is a space between a search string
+                if (entity.indexOf(' ') >= 0) {
+                    entitySubStr1 = entity.split(' ')[0];
+                    entitySubStr2 = entity.split(' ')[1];
+                }
+
+                if ((userInput.indexOf(entity) >= 0)
+                    || (userInput.indexOf(entitySubStr1) >= 0 && userInput.indexOf(entitySubStr2) >= 0)) {
+
+                    session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
+                }
+            }
+
+            if (pcGenericFulfillment == null && pcSpecificFulfillment == null) {
+
                 session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
             }
 
@@ -225,8 +224,6 @@ intents.matches('Yes Computer Issue', function (session, args) {
                 session.send('Please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
             }
         }
-
-
 
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
@@ -306,12 +303,10 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
 
             session.send(' Let me check the Asset ID….');
 
-             /*
             var selQuery =
-                'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
+                'select count(*) count from asset where asset_name = ? and asset_desc = \'java-ramanathan\'';
             connection.connect();
 
-           
             if (connection != null) {
                 connection.query(selQuery, ['ram-lp'], function (err, result) {
                     console.log(' ------- Asset name is found @ DB -------- ');
@@ -342,18 +337,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                             ' Asset id is not found in our asset list.... Please check again.');
                     }
                 });
-            } */
-
-            setTimeout(function () {
-                session.send(
-                    'OK, I am able to figure out the Asset ID in our asset list.');
-            }, 6000);
-
-            setTimeout(function () {
-
-                session.send(
-                    'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
-            }, 9000);
+            }
 
 
         } else {
@@ -361,10 +345,9 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
             session.send(' Let me check the Asset ID in our database….');
             session.sendTyping();
 
-            /*
             var strTokens = session.message.text.toLowerCase().split(' ');
 
-            
+
             strTokens.forEach(function (element) {
 
                 if (element != '' &&
@@ -373,7 +356,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                     connection.connect();
 
                     var selQuery =
-                        'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
+                        'select count(*) count from asset where asset_name = ? and asset_desc = \'java-ramanathan\'';
                     if (connection != null) {
                         connection.query(selQuery, [element], function (err, result) {
                             console.log(' ------- Asset name is found @ DB -------- ');
@@ -397,7 +380,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                                 setTimeout(function () {
 
                                     session.send(
-                                        'Thank you, I have created a ticket for you. The ticket id is HD003457. Someone from IT department will attend your problem within 24 hours.');
+                                        'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
                                 }, 9000);
 
                             } else {
@@ -409,13 +392,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                 } else {
                     session.send('Oops..! It seems the given Asset ID is invalid.');
                 }
-            }, this);  */
-
-            setTimeout(function () {
-                session.send('The given Asset ID is not in the Asset List. Can you please check once again?.');
-            }, 6000);
-            
-
+            }, this);
         }
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
@@ -448,7 +425,7 @@ intents.matches('My PC', function (session, args) {
             setTimeout(function () {
 
                 session.send(
-                    'Thank you, I have created a ticket for you. The ticket id is HD003458. Someone from IT department will attend your problem within 24 hours.');
+                    'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
             }, 9000);
         }
 
@@ -537,11 +514,11 @@ intents.matches('Can\'t Figure Out The Testing Asset Id', function (session, arg
 // Enabling SMALL TALK
 
 intents.onDefault(function (session, args) {
-    
+
     console.log('----> intents: ', intents);
     console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
     console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
-    
+
     session.sendTyping();
 
     if (typeof map.get('prev_intent') === 'undefined' && typeof map.get('prev_input') === 'undefined') {
@@ -590,15 +567,15 @@ var request = require('request');
 var ignoreCase = require('ignore-case');
 var http = require('http');
 
+/*
 var extServerOptions = {
     host: 'localhost',
     port: '1337',
     path: '/userTicket/',
     method: 'GET'
 };
+*/
 
-
-// Swagger client for Bot Connector API
 var connectorApiClient = new Swagger(
     {
         url: 'https://raw.githubusercontent.com/Microsoft/BotBuilder/master/CSharp/Library/Microsoft.Bot.Connector.Shared/Swagger/ConnectorAPI.json',
@@ -613,7 +590,6 @@ intents.matches('Tickets with Status', function (session, args) {
     var severity = '';
     var priority = '';
     if (args.entities != null) {
-        console.log('--if--> type: ', args.entities.length);
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
                 console.log("status--", status);
@@ -630,36 +606,37 @@ intents.matches('Tickets with Status', function (session, args) {
     if (status == '' || status == null) {
         status = 'new';
     }
-    console.log("status-2" + status);
 
-
-    /*var entityIndex = session.message.text.toLowerCase();
-    session.sendTyping();*/
     console.log("status-", status);
 
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S WHERE T.STATUS_ID = S.STATUS_ID AND STATUS_NAME = ? ORDER BY SEVERITY_ID DESC";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, status, function (err, rows, fields) {
+            if (err) {
+                console.log(' err: ', err);
+                throw err;
+            }
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
             console.log(' selQuery rows: ', rows);
             console.log(' selQuery rows: ', rows.length);
 
-
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                 }
-                session.send("Please find the below recent tickets for the status '" + status + "' <Br>" + tickets);
+                session.send("Check the below recent tickets for the status '" + status + "' <Br>" + tickets);
+            } else {
+                session.send("Sorry, you dont have any tickets right now.");
             }
-
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -671,7 +648,6 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
     var severity = '';
     var priority = '';
     if (args.entities != null) {
-        console.log('--if--> type: ', args.entities.length);
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
                 status = args.entities[i].entity;
@@ -691,18 +667,17 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
         priority = 'critical';
     }
 
-    
+
 
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
 
     var params = [status, priority];
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.PRIORITY_ID =  P.PRIORITY_ID  AND T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ? AND P.PRIORITY_NAME = ?  ORDER BY SEVERITY_ID DESC";
-    connection.connect();
     if (connection != null) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
+            console.log(' selQuery rows ', rows);
             if (err) {
                 console.log('error', err.message);
                 throw err;
@@ -710,19 +685,19 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                 }
                 console.log('tickets:', tickets);
-                session.send("Please find the below " + priority + " priority tickets for the status '" + status + "'. <Br>" + tickets);
+                session.send("Check the below " + priority + " priority tickets for the status '" + status + "'. <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -753,12 +728,12 @@ intents.matches('Tickets with Status & Severity', function (session, args) {
         severity = 'critical';
     }
 
-    
+
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
 
     var params = [status, severity];
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE , HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ?  AND  SE.SEVERITY_NAME = ? ORDER BY T.PRIORITY_ID DESC";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
@@ -773,18 +748,20 @@ intents.matches('Tickets with Status & Severity', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                     console.log('$$$ item: ', item);
                 }
-                session.send("Please find the below " + severity + "severity tickets for the status '" + status + "'. <Br>" + tickets);
+                session.send("Check the below " + severity + "severity tickets for the status '" + status + "'. <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
+
         });
     }
 });
@@ -823,13 +800,12 @@ intents.matches('My Tickets', function (session, args) {
     }
 
     console.log("status-" + status + " priority-" + priority + " severity-" + severity);
-    
+
     var params = [status, severity, priority, curUser];
 
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S,  HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P WHERE T.STATUS_ID = S.STATUS_ID AND T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.PRIORITY_ID = P.PRIORITY_ID AND S.STATUS_NAME LIKE ? AND SE.SEVERITY_NAME LIKE ? AND P.PRIORITY_NAME LIKE ? AND T.ASSIGNED_TO = ? ORDER BY T.SEVERITY_ID DESC";
-    connection.connect();
+    console.log('selQuery', selQuery);
     if (connection != null) {
-        //connection.query(selQuery, status, severity, function (err, rows, fields) {
         connection.query(selQuery, params, function (err, rows) {
             console.log(" ------- SELECT LIST  -------- ");
             console.log(' err: ', err);
@@ -842,18 +818,19 @@ intents.matches('My Tickets', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('curTicketList-', session.userData.curTicketList);
                 var tickets = '';
                 for (var idx in json) {
                     var item = json[idx];
                     tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
                     console.log('$$$ item: ', item);
                 }
-                session.send("Please find the below " + severity + " priority tickets for the status " + status + ". <Br>" + tickets + '-');
+                session.send("Kindly check the below tickets assigned to you.  <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets.");
+                session.send("You dont have any tickets right now.");
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
         });
     }
 });
@@ -872,11 +849,9 @@ intents.matches('Ticket Details', function (session, args) {
             }
         }
     }
- 
-
     console.log('ticketId ', ticketId);
     var selQuery = "SELECT TICKET_ID,TICKET_TITLE,S.STATUS_NAME,SE.SEVERITY_NAME, T.TICKET_DESC,T.ASSIGNED_TO,T.ASSET_ID FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND T.PRIORITY_ID = P.PRIORITY_ID AND T.TICKET_ID=?";
-    connection.connect();
+
     if (connection != null) {
         connection.query(selQuery, ticketId, function (err, rows, fields) {
             console.log(" ------- SELECT LIST  -------- ");
@@ -887,15 +862,140 @@ intents.matches('Ticket Details', function (session, args) {
             if (rows.length > 0) {
                 var string = JSON.stringify(rows);
                 var json = JSON.parse(string);
+                session.userData.curTicket = [];
+                session.userData.curTicket = json;
+                console.log('string-', string);
+                console.log('curTicket-', session.userData.curTicket);
                 var ticketsDetails = 'Ticket ID: ' + json[0].TICKET_ID + '<BR> Ticket Title: ' + json[0].TICKET_TITLE + '<BR> Title Desc: ' + json[0].STATUS_NAME + '<BR> Severity: ' + json[0].SEVERITY_NAME + '<BR> Assigned To: ' + json[0].ASSIGNED_TO;
 
-                session.send("Please find the ticket details below <BR>" + ticketsDetails);
+                session.send("Check down the ticket details as below <BR> <BR>" + ticketsDetails);
             } else {
 
                 session.send("There is no ticket with this ID:" + ticketId);
             }
-            console.log(' Closing the DB connection ........ !');
-            connection.end();
+
         });
+    }
+});
+intents.matches('Update Ticket Status', [function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var tostatus = '';
+    var priority = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId- ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'tostatus') {
+                tostatus = args.entities[i].entity;
+                console.log('tostatus- ', args.entities[i].entity);
+            }
+        }
+    }
+    console.log('ticketId- ', ticketId);
+
+    if (ticketId == '' || ticketId == null) {
+        console.log('curTicket-', session.userData.curTicket);
+        console.log('curTicket.length-', session.userData.curTicket.length);
+        if (session.userData.curTicket.length > 0) {
+            var o = session.userData.curTicket;
+            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
+        }
+    }else {
+        tickdetarr = ticketId;
+    }
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toStatus- ', tostatus);
+
+    session.userData.updateTicket = [];
+    session.userData.updateTicket = tickdetarr;
+    session.userData.updateStatus = [];
+    session.userData.updateStatus = tostatus;
+
+    builder.Prompts.confirm(session, "Gonna update the status to "+tostatus+" for the ticket id:"+tickdetarr+". Please confirm.");
+},
+function (session, results) {
+    console.log('results.response',results.response);
+    
+    if (results.response) {
+        session.beginDialog('updateStatus');
+    } else {
+        session.send('Okay.');
+    }
+}]);
+
+bot.dialog('updateStatus', function (session) {
+
+
+    console.log('updateTicket-', session.userData.updateTicket);
+    console.log('updateStatus-', session.userData.updateStatus);
+    var status = session.userData.updateStatus;
+    var tickdetarr=session.userData.updateTicket;
+    var params = [status, tickdetarr];
+    var selQuery = "update helpdesk.ticket set status_id = (select status_id from helpdesk.status where status_name=?) where ticket_id IN (?)";
+    if (connection != null) {
+        connection.query(selQuery, params, function (err, result) {
+            if (err) {
+                console.log(' err: ', err);
+                throw err;
+            }
+            console.log(" ------- update status -------- ");
+            console.log(' Update rows affected: ', result.affectedRows);
+            session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
+            session.endDialog();
+        });
+    }
+});
+
+intents.matches('Assign Ticket', function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var severity = '';
+    var priority = '';
+    var toassign = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'toassign') {
+                toassign = args.entities[i].entity;
+                console.log('toassign ', args.entities[i].entity);
+            }
+        }
+    }
+
+    if (ticketId == '' || ticketId == null) {
+        console.log('curTicket-', session.userData.curTicket);
+        console.log('curTicket.length-', session.userData.curTicket.length);
+        if (session.userData.curTicket.length > 0) {
+            var o = session.userData.curTicket;
+            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
+        }
+    }else {
+        tickdetarr = ticketId;
+    }
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toassign- ', toassign);
+    var params = [status, tickdetarr];
+    if (ticketId == null || ticketId == '') {
+        var selQuery = "update helpdesk.ticket  set assigned_to  = ? where ticket_id = ?;";
+        if (connection != null) {
+            connection.query(selQuery, params, function (err, result) {
+                if (err) {
+                    console.log(' err: ', err);
+                    throw err;
+                }
+                console.log(" ------- update status -------- ");
+                console.log(' Update rows affected: ', result.affectedRows);
+                session.send('Status has been updated to ' + status + ' for ticket id:' + ticketId);
+
+            });
+        }
+    } else {
+        session.send('seems there is no valid ticketid,  can you please provide that.');
     }
 });
