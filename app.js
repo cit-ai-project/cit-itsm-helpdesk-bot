@@ -15,21 +15,26 @@ var apiairecognizer = require('api-ai-recognizer');
 var HashMap = require('hashmap');
 var map = new HashMap();
 var mysql = require('mysql');
+var Router = require('restify-router').Router;
+var routerInstance = new  Router();
+var request = require('request'); //var request = require('request');
 
+var assetId;
+var userId = 'R2527';
 
 // Setup Restify Server
 var server = restify.createServer();
 
 var connection = mysql.createConnection({
-    host: '192.168.61.162', //localhost
+    host: 'localhost', //localhost - 192.168.61.162
     port: '3306',
     user: 'root',
-    password: 'root',
+    password: 'Abe0101$',   //
     database: 'helpdesk'
 });
 
 // Create chat connector for communicating with the Bot Framework Service
-var connector = new builder.ChatConnector({
+var connector = new builder.ChatConnector({ 
     appId: '3920ca45-4176-43f6-aaf6-be7b4804f750',
     appPassword: 'xonaTNP3)+dzcBQAD6844#='
 });
@@ -50,7 +55,7 @@ var intents = new builder.IntentDialog({
 });
 
 server.listen(process.env.port || process.env.PORT || 7070, function () {
-    console.log('%s sdfsdf listening to %s', server.name, server.url);
+    console.log('%s listening to %s', server.name, server.url);
 });
 
 
@@ -62,7 +67,7 @@ intents.matches('Default Welcome Intent', function (session, args) {
 
     var fulfillment =
         builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-    console.log('----> fulfillment: ', fulfillment);
+    
     if (fulfillment && fulfillment.entity != '') {
         var speech = fulfillment.entity;
         session.send(speech);
@@ -108,9 +113,11 @@ intents.matches('Generic Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
 
         // This is for Non-supported issues
-        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0
-            || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
+            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+
             session.send('Sorry, i can help you on Computer related issues only...!');
+
         } else {
             var fulfillment =
                 builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
@@ -132,7 +139,6 @@ intents.matches('Generic Problem With PC', function (session, args) {
 // Can you please specify if it's a PC (desktop, laptop etc.)?
 
 intents.matches('Specific Problem With PC', function (session, args) {
-    console.log(' -----> args: ', args);
     console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
     console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
 
@@ -141,13 +147,11 @@ intents.matches('Specific Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var userInput = session.message.text.toLowerCase();
         // This is for Non-supported issues
-        if(userInput.indexOf("printer") >= 0 || userInput.indexOf("scanner") >= 0 || userInput.indexOf("tablet") >= 0
-            || userInput.indexOf("fax") >= 0 || userInput.indexOf("iPad") >= 0 || userInput.indexOf("iPhone") >= 0){
+        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
+            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
             session.send('Sorry, i can help you on Computer related issues only...!');
         } else {
             
-            console.log(' -----> userInput: ', userInput);
-
             var pcGenericFulfillment =
             builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
 
@@ -204,12 +208,14 @@ intents.matches('Specific Problem With PC', function (session, args) {
     // set current intent as previous intent for future conversation.
     map.set('prev_intent', args.intent);
     map.set('prev_input', session.message.text);
+    map.set('ticket_title', session.message.text);
+    map.set('ticket_desc', session.message.text);
+    
 });
 
 
 intents.matches('Yes Computer Issue', function (session, args) {
-    console.log(' -----> args: ', args);
-
+    
     session.sendTyping();
 
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
@@ -271,7 +277,7 @@ intents.matches('Do Not Know Computer Id', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var fulfillment =
             builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-        console.log('----> fulfillment: ', fulfillment);
+        
         if (fulfillment && fulfillment.entity != '') {
             var speech = fulfillment.entity;
             session.send(speech);
@@ -290,133 +296,118 @@ intents.matches('Do Not Know Computer Id', function (session, args) {
 
 
 intents.matches('Get N Validate Asset Id', function (session, args) {
-
+    console.log('\n\n');
+    console.log(' ---> args: ', args);
     session.sendTyping();
 
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var mysql = require('mysql');
 
-        session.sendTyping();
-        console.log('----> session.message.text: ', session.message.text);
-        var entityIndex = session.message.text.toLowerCase();
+        var userInput = session.message.text.toLowerCase();
+                
+        var assetFulfillment =
+        builder.EntityRecognizer.findEntity(args.entities, 'Asset');
+        console.log('assetFulfillment: ', assetFulfillment);
 
-        if (entityIndex.indexOf('ram-lp') >= 0 ||
-            entityIndex.indexOf('ram-comp') >= 0) {  // check user-name and ends with '-lp'
-
-
-            session.send(' Let me check the Asset ID….');
-
-             /*
-            var selQuery =
-                'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
-            connection.connect();
-
-           
-            if (connection != null) {
-                connection.query(selQuery, ['ram-lp'], function (err, result) {
-                    console.log(' ------- Asset name is found @ DB -------- ');
-                    console.log(' err: ', err);
-                    console.log(' selQuery result: ', result);
-
-                    var stringCount = JSON.stringify(result);
-                    console.log(' stringCount: ', stringCount);
-                    var json = JSON.parse(stringCount);
-                    console.log(' json: ', json);
-
-                    console.log(' Closing the DB connection ........ !');
-                    connection.end();
-
-                    if (json[0].count == 1) {
-                        setTimeout(function () {
-                            session.send(
-                                'OK, I am able to figure out the Asset ID in our asset list.');
-                        }, 6000);
-
-                        setTimeout(function () {
-
-                            session.send(
-                                'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
-                        }, 9000);
-                    } else {
-                        session.send(
-                            ' Asset id is not found in our asset list.... Please check again.');
-                    }
-                });
-            } */
-
-            setTimeout(function () {
-                session.send(
-                    'OK, I am able to figure out the Asset ID in our asset list.');
-            }, 6000);
-
-            setTimeout(function () {
-
-                session.send(
-                    'Thank you, I have created a ticket for you. The ticket id is HD003456. Someone from IT department will attend your problem within 24 hours.');
-            }, 9000);
-
-
-        } else {
-            // session.send(' Please enter valid laptop id.');
-            session.send(' Let me check the Asset ID in our database….');
-            session.sendTyping();
-
-            /*
-            var strTokens = session.message.text.toLowerCase().split(' ');
-
-            
-            strTokens.forEach(function (element) {
-
-                if (element != '' &&
-                    (element.indexOf('ram-lp') >= 0 ||
-                        element.indexOf('ram-comp') >= 0)) {
-                    connection.connect();
-
-                    var selQuery =
-                        'select count(*) count from asset where asset_name = ? and assigned_to = \'java-ramanathan\'';
-                    if (connection != null) {
-                        connection.query(selQuery, [element], function (err, result) {
-                            console.log(' ------- Asset name is found @ DB -------- ');
-                            console.log(' err: ', err);
-                            console.log(' selQuery result: ', result);
-
-                            var stringCount = JSON.stringify(result);
-                            console.log(' stringCount: ', stringCount);
-                            var json = JSON.parse(stringCount);
-                            console.log(' json: ', json);
-
-                            console.log(' Closing the DB connection ........ !');
-                            connection.end();
-
-                            if (json[0].count == 1) {
-                                setTimeout(function () {
-                                    session.send(
-                                        'OK, I am able to figure out the Asset ID in our asset list.');
-                                }, 6000);
-
-                                setTimeout(function () {
-
-                                    session.send(
-                                        'Thank you, I have created a ticket for you. The ticket id is HD003457. Someone from IT department will attend your problem within 24 hours.');
-                                }, 9000);
-
-                            } else {
-                                session.send(
-                                    'Hmm…  It seems the given Asset ID is not in the asset list. Can you please check once again?.');
-                            }
-                        });
-                    }
-                } else {
-                    session.send('Oops..! It seems the given Asset ID is invalid.');
-                }
-            }, this);  */
-
-            setTimeout(function () {
-                session.send('The given Asset ID is not in the Asset List. Can you please check once again?.');
-            }, 6000);
-            
-
+        if (assetFulfillment && assetFulfillment.entity != '') {
+            if (userInput.indexOf(assetFulfillment.entity) >= 0) {
+                assetId = assetFulfillment.entity;
+            } else {
+                assetId = '';
+            }
         }
+        console.log('1 assetId: ', assetId);
+        if(assetId == '' || typeof assetId === 'undefined'){
+            console.log('AAAAAAAAA');
+            if (userInput.indexOf('ram-lp') >= 0) {
+                assetId = 'ram-lp';
+            } else if (userInput.indexOf('mani-lp') >= 0) {
+                assetId = 'mani-lp';
+            } else if (userInput.indexOf('clem-dk') >= 0) {
+                assetId = 'clem-dk';
+            } else if (userInput.indexOf('vijo-dk') >= 0) {
+                assetId = 'vijo-dk';
+            } else if (userInput.indexOf('shan-lp') >= 0) {
+                assetId = 'shan-lp';
+            }
+        }
+
+        console.log('2 assetId: ', assetId);
+        console.log('userId: ', userId);
+       
+            session.send(' Let me check the Asset ID….'); //ram-lp
+               var url = "http://192.168.61.153:1337/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
+               console.log('----> url: ',url);
+                request(url, function (error, response, body) {
+                    console.log('------> error: ',error);
+                    
+                    if (!error && response.statusCode == 200) {
+                       
+                        var jsonObj = JSON.parse(body);
+                       
+                        console.log('----> jsonObj: ',jsonObj);
+
+                        if(jsonObj.results){
+                            console.log('----> jsonObj.results - asset_id: ',jsonObj.results[0].asset_id);
+                            console.log('----> jsonObj.results - asset_name: ',jsonObj.results[0].asset_name);
+                                
+                            if(jsonObj.results[0].asset_id && jsonObj.results[0].asset_name){
+                                    
+                                    setTimeout(function () {
+                                        session.send(
+                                            'OK, I am able to figure out the Asset ID in our asset list.');
+                                    }, 6000);
+                                    session.sendTyping();
+                                    //Call API for Ticket Generation
+                                    url = "http://192.168.61.153:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                    
+                                    request(url, function (error, response, body) {
+                                        
+                                        if (!error && response.statusCode == 200) {
+
+                                            jsonObj = JSON.parse(body);
+                                            
+                                            console.log('--2--> jsonObj: ',jsonObj);
+
+                                                if(jsonObj){
+
+                                                    setTimeout(function () {
+                                                        session.send(
+                                                            "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+" Someone from IT department will attend your problem within 24 hours.");
+                                                    }, 9000);
+                                            
+                                                } else {
+                                                    setTimeout(function () {
+                                                        session.send(
+                                                            'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                                    }, 9000);
+                                                }
+
+                                        } else {
+
+                                            setTimeout(function () {
+                                                session.send(
+                                                    'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                            }, 9000);
+
+                                        }
+                                        
+                                    });
+
+                                }
+
+                        } else {
+                            setTimeout(function () {
+                                session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                            }, 6000);
+                        }
+                    } else {
+                        setTimeout(function () {
+                            session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                        }, 6000);
+                    }
+               });
+
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
     }
@@ -439,17 +430,48 @@ intents.matches('My PC', function (session, args) {
 
         } else {
             session.send('Let me explore....');
+            
+            var url = "http://192.168.61.153:1337/api/helpdesk/asset/getAssetByUser?&userId="+userId;
+            console.log('----> url: ',url);
+             request(url, function (error, response, body) {
+                 console.log('------> error: ',error);
+                 
+                 if (!error && response.statusCode == 200) {
+                    
+                     var jsonObj = JSON.parse(body);
+                    
+                     console.log('----> jsonObj: ',jsonObj);
 
-            setTimeout(function () {
-                session.send(
-                    'OK, I could identify your PC from our database. It\'s ram-lp.');
-            }, 6000);
+                     if(jsonObj.results){
+                         console.log('----> jsonObj.results - asset_id: ',jsonObj.results[0].asset_id);
+                         console.log('----> jsonObj.results - asset_name: ',jsonObj.results[0].asset_name);
+                             
+                         if(jsonObj.results[0].asset_id && jsonObj.results[0].asset_name){
+                                 
+                                 setTimeout(function () {
+                                     session.send(
+                                         'OK, I am able to figure out the Asset ID in our asset list.');
+                                 }, 6000);
+                                 session.sendTyping();
+                                 setTimeout(function () {
+                                    session.send(
+                                        "Your Asset id is "+jsonObj.results[0].asset_name+".");
+                                }, 9000);
+                             }
 
-            setTimeout(function () {
+                     } else {
+                         setTimeout(function () {
+                             session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                         }, 6000);
+                     }
+                 } else {
+                     setTimeout(function () {
+                         session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                     }, 6000);
+                 }
+            });
 
-                session.send(
-                    'Thank you, I have created a ticket for you. The ticket id is HD003458. Someone from IT department will attend your problem within 24 hours.');
-            }, 9000);
+
         }
 
     } else {
@@ -532,15 +554,34 @@ intents.matches('Can\'t Figure Out The Testing Asset Id', function (session, arg
 
 });
 
+intents.matches('Cryptic Request', function (session, args) {
+
+    session.sendTyping();
+
+    if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
+        var fulfillment = builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
+        if (fulfillment && fulfillment.entity != '') {
+            var speech = fulfillment.entity;
+            session.send(speech);
+        } else {
+            session.send('Sorry...Could you say that again ?');
+        }
+
+    } else {
+        session.send('Please begin your conversation, saying " Hi / Hello " ');
+    }
+    // set current intent as previous intent for future conversation.
+    map.set('prev_intent', args.intent);
+    map.set('prev_input', session.message.text);
+});
+
 
 
 // Enabling SMALL TALK
 
 intents.onDefault(function (session, args) {
-    
-    console.log('----> intents: ', intents);
-    console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
-    console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
+   console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
+   console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
     
     session.sendTyping();
 
@@ -554,11 +595,9 @@ intents.onDefault(function (session, args) {
     } else {
         var fulfillment =
             builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-        console.log('fulfillment: ', fulfillment);
 
         if (fulfillment && fulfillment.entity != '') {
             var speech = fulfillment.entity;
-            console.log('speech: ', speech);
             session.send(speech);
         } else {
             session.send('Sorry...I couldn\'t understand. ');
@@ -572,7 +611,6 @@ intents.onDefault(function (session, args) {
     map.set('prev_intent', args.intent);
     map.set('prev_input', session.message.text);
 });
-
 
 
 // Code Ends By Ramanathan
