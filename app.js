@@ -15,8 +15,6 @@ var apiairecognizer = require('api-ai-recognizer');
 var HashMap = require('hashmap');
 var map = new HashMap();
 var mysql = require('mysql');
-var Router = require('restify-router').Router;
-var routerInstance = new  Router();
 var request = require('request'); //var request = require('request');
 
 var assetId;
