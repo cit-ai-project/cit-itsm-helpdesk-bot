@@ -26,10 +26,10 @@ var userId = 'R2527';
 var server = restify.createServer();
 
 var connection = mysql.createConnection({
-    host: 'localhost', //localhost - 192.168.61.162
+    host: '192.168.61.162', //localhost - 192.168.61.162
     port: '3306',
     user: 'root',
-    password: 'Abe0101$',   //
+    password: 'root',   
     database: 'helpdesk'
 });
 
