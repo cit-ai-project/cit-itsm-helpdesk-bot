@@ -459,12 +459,12 @@ intents.matches('My PC', function (session, args) {
 
                      } else {
                          setTimeout(function () {
-                             session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                             session.send('Sorry, I am unable to figure out your Asset ID in our asset list.');
                          }, 6000);
                      }
                  } else {
                      setTimeout(function () {
-                         session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                         session.send('Sorry, I am unable to figure out your Asset ID in our asset list.');
                      }, 6000);
                  }
             });
