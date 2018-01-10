@@ -27,7 +27,7 @@ var connection = mysql.createConnection({
     host: '192.168.61.162', //localhost - 192.168.61.162
     port: '3306',
     user: 'root',
-    password: 'root',   
+    password: 'root',   //
     database: 'helpdesk'
 });
 
@@ -316,7 +316,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
         }
         console.log('1 assetId: ', assetId);
         if(assetId == '' || typeof assetId === 'undefined'){
-            console.log('AAAAAAAAA');
+            
             if (userInput.indexOf('ram-lp') >= 0) {
                 assetId = 'ram-lp';
             } else if (userInput.indexOf('mani-lp') >= 0) {
@@ -334,8 +334,10 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
         console.log('userId: ', userId);
        
             session.send(' Let me check the Asset ID….'); //ram-lp
-               var url = "http://192.168.61.153:1337/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
-               console.log('----> url: ',url);
+                // Server - 192.168.60.222
+                // Local - 192.168.61.153
+               var url = "http://192.168.60.222:1337/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
+               console.log('--First--> url: ',url);
                 request(url, function (error, response, body) {
                     console.log('------> error: ',error);
                     
@@ -357,9 +359,11 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                                     }, 6000);
                                     session.sendTyping();
                                     //Call API for Ticket Generation
-                                    url = "http://192.168.61.153:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                    url = "http://192.168.60.222:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                    console.log('--Second--> url: ',url);
                                     
                                     request(url, function (error, response, body) {
+                                        console.log('--error: ',error);
                                         
                                         if (!error && response.statusCode == 200) {
 
@@ -371,7 +375,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
 
                                                     setTimeout(function () {
                                                         session.send(
-                                                            "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+" Someone from IT department will attend your problem within 24 hours.");
+                                                            "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+". Someone from IT department will attend your problem within 24 hours.");
                                                     }, 9000);
                                             
                                                 } else {
@@ -429,7 +433,7 @@ intents.matches('My PC', function (session, args) {
         } else {
             session.send('Let me explore....');
             
-            var url = "http://192.168.61.153:1337/api/helpdesk/asset/getAssetByUser?&userId="+userId;
+            var url = "http://192.168.60.222:1337/api/helpdesk/asset/getAssetByUser?&userId="+userId;
             console.log('----> url: ',url);
              request(url, function (error, response, body) {
                  console.log('------> error: ',error);
@@ -443,6 +447,7 @@ intents.matches('My PC', function (session, args) {
                      if(jsonObj.results){
                          console.log('----> jsonObj.results - asset_id: ',jsonObj.results[0].asset_id);
                          console.log('----> jsonObj.results - asset_name: ',jsonObj.results[0].asset_name);
+                         var retrievedAssetFromDB = jsonObj.results[0].asset_name;
                              
                          if(jsonObj.results[0].asset_id && jsonObj.results[0].asset_name){
                                  
@@ -450,21 +455,63 @@ intents.matches('My PC', function (session, args) {
                                      session.send(
                                          'OK, I am able to figure out the Asset ID in our asset list.');
                                  }, 6000);
+
                                  session.sendTyping();
+                                 
                                  setTimeout(function () {
+                                    console.log('----> retrievedAssetFromDB: ',retrievedAssetFromDB);
                                     session.send(
-                                        "Your Asset id is "+jsonObj.results[0].asset_name+".");
+                                        "Your Asset id is "+retrievedAssetFromDB+".");
                                 }, 9000);
+
+                                //Call API for Ticket Generation
+                                url = "http://192.168.60.222:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                console.log('--Second--> url: ',url);
+                                
+                                request(url, function (error, response, body) {
+                                    console.log('--error: ',error);
+                                    
+                                    if (!error && response.statusCode == 200) {
+
+                                        jsonObj = JSON.parse(body);
+                                        
+                                        console.log('--2--> jsonObj: ',jsonObj);
+
+                                            if(jsonObj){
+
+                                                setTimeout(function () {
+                                                    session.send(
+                                                        "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+". Someone from IT department will attend your problem within 24 hours.");
+                                                }, 10000);
+                                        
+                                            } else {
+                                                setTimeout(function () {
+                                                    session.send(
+                                                        'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                                }, 10000);
+                                            }
+
+                                    } else {
+
+                                        setTimeout(function () {
+                                            session.send(
+                                                'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                        }, 9000);
+
+                                    }
+                                    
+                                });
+
                              }
 
                      } else {
                          setTimeout(function () {
-                             session.send('Sorry, I am unable to figure out your Asset ID in our asset list.');
+                             session.send('Sorry, I am unable to figure out the Asset ID in our asset list.');
                          }, 6000);
                      }
                  } else {
                      setTimeout(function () {
-                         session.send('Sorry, I am unable to figure out your Asset ID in our asset list.');
+                        session.send('Sorry, I am unable to figure out the Asset ID in our asset list.');
                      }, 6000);
                  }
             });
@@ -583,9 +630,12 @@ intents.onDefault(function (session, args) {
     
     session.sendTyping();
 
+    /*
     if (typeof map.get('prev_intent') === 'undefined' && typeof map.get('prev_input') === 'undefined') {
         session.send("Hello, I am Liz, a virtual agent for IT related services.  At the moment, I can help you to fix your problems related to laptop and desktop and can create a ticket if needed. For all other queries, you may want to call the IT helpdesk toll free number 1-800-123-4567.  How can I help you now ?");
-    } else if (typeof map.get('prev_intent') !== 'undefined' && map.get('prev_intent') &&
+    } else  */
+    
+    if (typeof map.get('prev_intent') !== 'undefined' && map.get('prev_intent') &&
         (map.get('prev_intent') == 'Get N Validate Asset Id' ||
             map.get('prev_intent') == 'Yes Computer Issue')) {
         session.send('Asset ID is invalid. Please try again with the proper one.');
@@ -611,7 +661,9 @@ intents.onDefault(function (session, args) {
 });
 
 
+
 // Code Ends By Ramanathan
+
 
 // =====================================================================================================================
 
