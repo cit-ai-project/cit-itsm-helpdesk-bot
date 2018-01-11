@@ -19,6 +19,7 @@ var request = require('request'); //var request = require('request');
 
 var assetId;
 var userId = 'R2527';
+var backEndSystemIPPort = "192.168.60.222:1337"; // Sails Backend System
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -336,7 +337,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
             session.send(' Let me check the Asset ID….'); //ram-lp
                 // Server - 192.168.60.222
                 // Local - 192.168.61.153
-               var url = "http://192.168.60.222:1337/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
+               var url = "http://"+backEndSystemIPPort+"/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
                console.log('--First--> url: ',url);
                 request(url, function (error, response, body) {
                     console.log('------> error: ',error);
@@ -359,7 +360,7 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
                                     }, 6000);
                                     session.sendTyping();
                                     //Call API for Ticket Generation
-                                    url = "http://192.168.60.222:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                    url = "http://"+backEndSystemIPPort+"/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
                                     console.log('--Second--> url: ',url);
                                     
                                     request(url, function (error, response, body) {
@@ -433,7 +434,7 @@ intents.matches('My PC', function (session, args) {
         } else {
             session.send('Let me explore....');
             
-            var url = "http://192.168.60.222:1337/api/helpdesk/asset/getAssetByUser?&userId="+userId;
+            var url = "http://"+backEndSystemIPPort+"/api/helpdesk/asset/getAssetByUser?&userId="+userId;
             console.log('----> url: ',url);
              request(url, function (error, response, body) {
                  console.log('------> error: ',error);
@@ -465,7 +466,7 @@ intents.matches('My PC', function (session, args) {
                                 }, 9000);
 
                                 //Call API for Ticket Generation
-                                url = "http://192.168.60.222:1337/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset='ram-lp'&created_by='S8888'";
+                                url = "http://"+backEndSystemIPPort+"/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
                                 console.log('--Second--> url: ',url);
                                 
                                 request(url, function (error, response, body) {
@@ -659,7 +660,6 @@ intents.onDefault(function (session, args) {
     map.set('prev_intent', args.intent);
     map.set('prev_input', session.message.text);
 });
-
 
 
 // Code Ends By Ramanathan
