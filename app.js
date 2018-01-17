@@ -677,87 +677,50 @@ var util = require('util');
 var request = require('request');
 var ignoreCase = require('ignore-case');
 var http = require('http');
+var PropertiesReader = require('properties-reader');
+var path = require("path");
 
-/*
-var extServerOptions = {
-    host: 'localhost',
-    port: '1337',
-    path: '/userTicket/',
-    method: 'GET'
-};
-*/
+var properties = PropertiesReader(path.resolve(__dirname, 'system.properties'));
 
 var connectorApiClient = new Swagger(
     {
         url: 'https://raw.githubusercontent.com/Microsoft/BotBuilder/master/CSharp/Library/Microsoft.Bot.Connector.Shared/Swagger/ConnectorAPI.json',
         usePromise: true
     });
+    
+intents.matches('Welcome Admin Intent', function (session, args) {
+    console.log('----> Welcome Admin Intent<-------');
+    session.sendTyping();
+    session.userData = {};
+    session.privateConversationData = {};
+    session.conversationData = {};
+    session.dialogData = {};
+    console.log('session.message.user.id',session.message.user.id);
+    console.log('session.message.address.user.name',session.message.address.user.name);
+    var fulfillment =
+        builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
 
-
-
-intents.matches('Tickets with Status', function (session, args) {
-    console.log('----> args: ', args);
-    var status = '';
-    var severity = '';
-    var priority = '';
-    if (args.entities != null) {
-        for (var i = 0; i < args.entities.length; i++) {
-            if (args.entities[i].type == 'status') {
-                console.log("status--", status);
-                status = args.entities[i].entity;
-            }
-            if (args.entities[i].type == 'severity') {
-                severity = args.entities[i].entity;
-            }
-            if (args.entities[i].type == 'priority') {
-                priority = args.entities[i].entity;
-            }
-        }
-    }
-    if (status == '' || status == null) {
-        status = 'new';
-    }
-
-    console.log("status-", status);
-
-    var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S WHERE T.STATUS_ID = S.STATUS_ID AND STATUS_NAME = ? ORDER BY SEVERITY_ID DESC";
-
-    if (connection != null) {
-        connection.query(selQuery, status, function (err, rows, fields) {
-            if (err) {
-                console.log(' err: ', err);
-                throw err;
-            }
-            console.log(" ------- SELECT LIST  -------- ");
-            console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
-            console.log(' selQuery rows: ', rows.length);
-
-            if (rows.length > 0) {
-                var string = JSON.stringify(rows);
-                var json = JSON.parse(string);
-                session.userData.curTicket = [];
-                session.userData.curTicket = json;
-                console.log('curTicketList-', session.userData.curTicketList);
-                var tickets = '';
-                for (var idx in json) {
-                    var item = json[idx];
-                    tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
-                }
-                session.send("Check the below recent tickets for the status '" + status + "' <Br>" + tickets);
-            } else {
-                session.send("Sorry, you dont have any tickets right now.");
-            }
-        });
+    if (fulfillment && fulfillment.entity != '') {
+        var speech = fulfillment.entity;
+        session.send(speech);
+    } else {
+        session.send('Sorry...Could you say that again ?');
     }
 });
 
+contextJson = { "name": "admin", "lifespan": 2 };
 
-intents.matches('Tickets with Status & Priority', function (session, args) {
+intents.matches('Show Tickets', function (session, args) {
     console.log('----> args: ', args);
     var status = '';
     var severity = '';
     var priority = '';
+    var username = '';
+    var statusId = '';
+    var severityId = '';
+    var priorityId = '';
+    var userId = '';
+
     if (args.entities != null) {
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
@@ -769,121 +732,82 @@ intents.matches('Tickets with Status & Priority', function (session, args) {
             if (args.entities[i].type == 'priority') {
                 priority = args.entities[i].entity;
             }
-        }
-    }
-    if (status == '' || status == null) {
-        status = 'new';
-    }
-    if (priority == '' || priority == null) {
-        priority = 'critical';
-    }
-
-
-
-    console.log("status-" + status + " priority-" + priority + " severity-" + severity);
-
-    var params = [status, priority];
-    var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.PRIORITY_ID =  P.PRIORITY_ID  AND T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ? AND P.PRIORITY_NAME = ?  ORDER BY SEVERITY_ID DESC";
-    if (connection != null) {
-        connection.query(selQuery, params, function (err, rows) {
-            console.log(" ------- SELECT LIST  -------- ");
-            console.log(' err: ', err);
-            console.log(' selQuery rows ', rows);
-            if (err) {
-                console.log('error', err.message);
-                throw err;
-            }
-            if (rows.length > 0) {
-                var string = JSON.stringify(rows);
-                var json = JSON.parse(string);
-                session.userData.curTicket = [];
-                session.userData.curTicket = json;
-                console.log('curTicketList-', session.userData.curTicketList);
-                var tickets = '';
-                for (var idx in json) {
-                    var item = json[idx];
-                    tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
-                }
-                console.log('tickets:', tickets);
-                session.send("Check the below " + priority + " priority tickets for the status '" + status + "'. <Br>" + tickets);
-            } else {
-                session.send("You dont have any tickets right now.");
-            }
-        });
-    }
-});
-
-
-intents.matches('Tickets with Status & Severity', function (session, args) {
-    console.log('----> args: ', args);
-    var status = '';
-    var severity = '';
-    var priority = '';
-    if (args.entities != null) {
-        for (var i = 0; i < args.entities.length; i++) {
-            if (args.entities[i].type == 'status') {
-                status = args.entities[i].entity;
-            }
-            if (args.entities[i].type == 'severity') {
-                severity = args.entities[i].entity;
-            }
-            if (args.entities[i].type == 'priority') {
-                priority = args.entities[i].entity;
+            if (args.entities[i].type == 'username') {
+                username = args.entities[i].entity;
             }
         }
     }
-    if (status == '' || status == null) {
-        status = 'new';
+    console.log("status-" + status + " priority-" + priority + " severity-" + severity + "username-" + username);
+
+
+    if (status != null && status != '') {
+        console.log('status property:' + properties.get(status));
+        statusId = properties.get(status);
     }
-    if (severity == '' || severity == null) {
-        severity = 'critical';
+    if (severity != null && severity != '') {
+        console.log('severity property:' + properties.get(severity));
+        severityId = properties.get(severity);
     }
+    if (priority != null && priority != '') {
+        console.log('priority property:' + properties.get(priority));
+        priorityId = properties.get(priority);
+    }
+    if (username != null && username != '') {
+        username = username.replace("\'s", '');
+        console.log('priority property:' + username + '-' + properties.get(username));
+        userId = properties.get(username);
 
+    }
+    console.log('statusId-' + statusId + 'priorityId-' + priorityId + 'severityId-' + severityId + 'userId-' + userId);
 
-    console.log("status-" + status + " priority-" + priority + " severity-" + severity);
+    var url = 'http://192.168.60.222:1337/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
+    console.log('url:-' + url);
 
-    var params = [status, severity];
-    var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE , HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND S.STATUS_NAME = ?  AND  SE.SEVERITY_NAME = ? ORDER BY T.PRIORITY_ID DESC";
-
-    if (connection != null) {
-        connection.query(selQuery, params, function (err, rows) {
-            console.log(" ------- SELECT LIST  -------- ");
-            console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
-            console.log(' selQuery rows length: ', rows.length);
-
-            if (err) {
-                console.log('error', err.message);
-                throw err;
-            }
-            if (rows.length > 0) {
-                var string = JSON.stringify(rows);
-                var json = JSON.parse(string);
-                session.userData.curTicket = [];
-                session.userData.curTicket = json;
-                console.log('curTicketList-', session.userData.curTicketList);
-                var tickets = '';
-                for (var idx in json) {
-                    var item = json[idx];
-                    tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
-                    console.log('$$$ item: ', item);
+    request(url, function (error, response, body) {
+        console.log('------> body: ', body);
+        if (body == undefined || body == null) {
+            session.send("Server is down for maintenance. Kindly do try after some time.");
+        } else {
+            var jsonObj = JSON.parse(body);
+            if (jsonObj.success) {
+                if (jsonObj.results != null && jsonObj.results.length > 0) {
+                    session.userData.curTicket = jsonObj.results;
+                    //console.log('curTicket-', session.userData.curTicket);
+                    var tickets = '';
+                    for (var idx in jsonObj.results) {
+                        var item = jsonObj.results[idx];
+                        tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '<BR>';
+                    }
+                    if (status == '' || status == null) {
+                        session.send("**Here you go. Check down the below tickets.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                    } else {
+                        session.send("**Following are the tickets with '" + status + "'  status.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                    }
+                } else {
+                    setTimeout(function () {
+                        session.send("There is no tickets available rightnow.");
+                    }, 6000);
                 }
-                session.send("Check the below " + severity + "severity tickets for the status '" + status + "'. <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets right now.");
+                setTimeout(function () {
+                    session.send("There is no tickets available rightnow.");
+                }, 6000);
             }
+        }
 
-        });
-    }
+    });
 });
 
-
-intents.matches('My Tickets', function (session, args) {
+intents.matches('Show My Tickets', function (session, args) {
     console.log('----> args: ', args);
     var status = '';
     var severity = '';
     var priority = '';
     var curUser = '';
+    var statusId = '';
+    var severityId = '';
+    var priorityId = '';
+    var userId = '';
     if (args.entities != null) {
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'status') {
@@ -896,58 +820,68 @@ intents.matches('My Tickets', function (session, args) {
                 priority = args.entities[i].entity;
             }
             if (args.entities[i].type == 'curUser') {
-                curUser = 'vijay';
+                curUser = args.entities[i].entity;
             }
         }
     }
-    if (status == '' || status == null) {
-        status = 'new';
-    }
-    if (severity == '' || severity == null) {
-        severity = '%';
-    }
-    if (priority == '' || priority == null) {
-        priority = '%';
-    }
+    console.log("status-" + status + " priority-" + priority + " severity-" + severity + "curUser-" + curUser);
 
-    console.log("status-" + status + " priority-" + priority + " severity-" + severity);
+    if (status != null && status != '') {
+        console.log('status property:' + properties.get(status));
+        statusId = properties.get(status);
+    }
+    if (severity != null && severity != '') {
+        console.log('severity property:' + properties.get(severity));
+        severityId = properties.get(severity);
+    }
+    if (priority != null && priority != '') {
+        console.log('priority property:' + properties.get(priority));
+        priorityId = properties.get(priority);
+    }
+    if (curUser != null && curUser != '') {
+        userId = 'S8888';
+    }
+    console.log('statusId-' + statusId + 'severityId-' + severityId + 'priorityId-' + priorityId + 'userId-' + userId);
 
-    var params = [status, severity, priority, curUser];
+    var url = 'http://192.168.60.222:1337/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
+    console.log('url:-' + url);
 
-    var selQuery = "SELECT TICKET_ID,TICKET_TITLE FROM HELPDESK.TICKET T, HELPDESK.STATUS S,  HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P WHERE T.STATUS_ID = S.STATUS_ID AND T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.PRIORITY_ID = P.PRIORITY_ID AND S.STATUS_NAME LIKE ? AND SE.SEVERITY_NAME LIKE ? AND P.PRIORITY_NAME LIKE ? AND T.ASSIGNED_TO = ? ORDER BY T.SEVERITY_ID DESC";
-    console.log('selQuery', selQuery);
-    if (connection != null) {
-        connection.query(selQuery, params, function (err, rows) {
-            console.log(" ------- SELECT LIST  -------- ");
-            console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
-            console.log(' selQuery rows length: ', rows.length);
-            if (err) {
-                console.log('error', err.message);
-                throw err;
-            }
-            if (rows.length > 0) {
-                var string = JSON.stringify(rows);
-                var json = JSON.parse(string);
-                session.userData.curTicket = [];
-                session.userData.curTicket = json;
-                console.log('curTicketList-', session.userData.curTicketList);
-                var tickets = '';
-                for (var idx in json) {
-                    var item = json[idx];
-                    tickets = tickets + item.TICKET_ID + '-' + item.TICKET_TITLE + '<BR>';
-                    console.log('$$$ item: ', item);
+    request(url, function (error, response, body) {
+        console.log('------> body: ', body);
+        if (body == undefined || body == null) {
+            session.send("Server is down for maintenance. Kindly do try after some time.");
+        } else {
+            var jsonObj = JSON.parse(body);
+            if (jsonObj.success) {
+                if (jsonObj.results != null && jsonObj.results.length > 0) {
+                    session.userData.curTicket = jsonObj.results;
+                    console.log('curTicket-', session.userData.curTicket);
+                    var tickets = '';
+                    for (var idx in jsonObj.results) {
+                        var item = jsonObj.results[idx];
+                        tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '<BR>';
+                    }
+                    if (status == '' || status == null) {
+                        session.send("**Here you go. Check down the below tickets.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                    } else {
+                        session.send("**Following are the tickets with '" + status + "'  status.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                    }
+                } else {
+                    setTimeout(function () {
+                        session.send("There is no tickets available rightnow.");
+                    }, 6000);
                 }
-                session.send("Kindly check the below tickets assigned to you.  <Br>" + tickets);
             } else {
-                session.send("You dont have any tickets right now.");
+                setTimeout(function () {
+                    session.send("There is no tickets available rightnow.");
+                }, 6000);
             }
-        });
-    }
+        }
+    });
 });
 
 
-intents.matches('Ticket Details', function (session, args) {
+intents.matches('Get Ticket Details', function (session, args) {
     console.log('----> args: ', args);
     var ticketId = '';
     var severity = '';
@@ -961,33 +895,43 @@ intents.matches('Ticket Details', function (session, args) {
         }
     }
     console.log('ticketId ', ticketId);
-    var selQuery = "SELECT TICKET_ID,TICKET_TITLE,S.STATUS_NAME,SE.SEVERITY_NAME, T.TICKET_DESC,T.ASSIGNED_TO,T.ASSET_ID FROM HELPDESK.TICKET T, HELPDESK.SEVERITY SE, HELPDESK.PRIORITY P, HELPDESK.STATUS S WHERE T.SEVERITY_ID =  SE.SEVERITY_ID AND  T.STATUS_ID=S.STATUS_ID AND T.PRIORITY_ID = P.PRIORITY_ID AND T.TICKET_ID=?";
-
-    if (connection != null) {
-        connection.query(selQuery, ticketId, function (err, rows, fields) {
-            console.log(" ------- SELECT LIST  -------- ");
-            console.log(' err: ', err);
-            console.log(' selQuery rows: ', rows);
-            console.log(' selQuery rows length: ', rows.length);
-
-            if (rows.length > 0) {
-                var string = JSON.stringify(rows);
-                var json = JSON.parse(string);
-                session.userData.curTicket = [];
-                session.userData.curTicket = json;
-                console.log('string-', string);
-                console.log('curTicket-', session.userData.curTicket);
-                var ticketsDetails = 'Ticket ID: ' + json[0].TICKET_ID + '<BR> Ticket Title: ' + json[0].TICKET_TITLE + '<BR> Title Desc: ' + json[0].STATUS_NAME + '<BR> Severity: ' + json[0].SEVERITY_NAME + '<BR> Assigned To: ' + json[0].ASSIGNED_TO;
-
-                session.send("Check down the ticket details as below <BR> <BR>" + ticketsDetails);
-            } else {
-
-                session.send("There is no ticket with this ID:" + ticketId);
-            }
-
-        });
+    if (ticketId == 'undefined' || ticketId == null) {
+        console.log('ticketId ', ticketId);
+        ticketId = '';
     }
+    var url = 'http://192.168.60.222:1337/api/helpdesk/userTicket/getTickets?ticketId=' + ticketId;
+    console.log('url:-' + url);
+
+    request(url, function (error, response, body) {
+        console.log('------> body: ', body);
+        if (body == undefined || body == null) {
+            session.send("Server is down for maintenance. Kindly do try after some time.");
+        } else {
+            var jsonObj = JSON.parse(body);
+            if (jsonObj.success) {
+                if (jsonObj.results != null && jsonObj.results.length > 0) {
+                    session.userData.curTicket = jsonObj.results;
+                    console.log('curTicket-', session.userData.curTicket);
+                    var tickets = '';
+                    var item = jsonObj.results;
+                    console.log('**Ticket ID: **' + item[0].id + '<BR>**Ticket Title: **' + item[0].ticket_title + '<BR>**Title Desc:**' + item[0].ticket_desc +  '<BR>**Status:** ' + item[0].status + '<BR> **Severity:**' + item[0].severity + '<BR> **Assigned To:**' + item[0].assigned_to + '')
+                    var ticketsDetails = '**Ticket ID:** ' + item[0].id + '<BR>**Ticket Title:** ' + item[0].ticket_title + '<BR>**Title Desc:** ' + item[0].ticket_desc +  '<BR>**Status:** ' + item[0].status + '<BR>**Severity:** ' + item[0].severity + '<BR>**Assigned To:** ' + item[0].assigned_to + '';
+                    session.send("**Check down the ticket details.** <BR>&nbsp;&nbsp; <BR>" + ticketsDetails);
+
+                } else {
+                    setTimeout(function () {
+                        session.send("Ticket Id is not valid.");
+                    }, 6000);
+                }
+            } else {
+                setTimeout(function () {
+                    session.send("Ticket Id is not valid.");
+                }, 6000);
+            }
+        }
+    });
 });
+
 intents.matches('Update Ticket Status', [function (session, args) {
     console.log('----> args: ', args);
     var ticketId = '';
@@ -999,66 +943,210 @@ intents.matches('Update Ticket Status', [function (session, args) {
                 ticketId = args.entities[i].entity;
                 console.log('ticketId- ', args.entities[i].entity);
             }
-            if (args.entities[i].type == 'tostatus') {
+            if (args.entities[i].type == 'status') {
                 tostatus = args.entities[i].entity;
                 console.log('tostatus- ', args.entities[i].entity);
             }
         }
     }
     console.log('ticketId- ', ticketId);
-
+    var tickdetarr = '';
     if (ticketId == '' || ticketId == null) {
-        console.log('curTicket-', session.userData.curTicket);
-        console.log('curTicket.length-', session.userData.curTicket.length);
-        if (session.userData.curTicket.length > 0) {
-            var o = session.userData.curTicket;
-            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
+        console.log('updateTicket-', session.userData.updateTicket);
+        if (session.userData.updateTicket == null || session.userData.updateTicket == '') {
+            console.log('curTicket-', session.userData.curTicket);
+            if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                var o = session.userData.curTicket;
+                tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+                console.log('tickdetarr:', tickdetarr);
+            }
+        } else {
+            tickdetarr = session.userData.updateTicket;
         }
-    }else {
+    } else {
         tickdetarr = ticketId;
     }
-    console.log('tickdetarr- ', tickdetarr);
-    console.log('toStatus- ', tostatus);
-
     session.userData.updateTicket = [];
     session.userData.updateTicket = tickdetarr;
     session.userData.updateStatus = [];
     session.userData.updateStatus = tostatus;
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toStatus- ', tostatus);
 
-    builder.Prompts.confirm(session, "Gonna update the status to "+tostatus+" for the ticket id:"+tickdetarr+". Please confirm.");
-},
-function (session, results) {
-    console.log('results.response',results.response);
-    
-    if (results.response) {
-        session.beginDialog('updateStatus');
+    if (tickdetarr != null && tickdetarr == '') {
+        console.log('------------- ');
+        session.send('Please provide us valid ticket id.');
+    } else if (tostatus != null && tostatus == '') {
+        console.log('================== ');
+        session.send('Please provide us status to change.');
     } else {
-        session.send('Okay.');
+        console.log('!!!!!!!!!!!!!!! ');
+        session.beginDialog('updateStatusConfirmation');
     }
 }]);
 
-bot.dialog('updateStatus', function (session) {
+intents.matches('Update Ticket Status - ticketid', [function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var tostatus = '';
+    var priority = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId- ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'status') {
+                tostatus = args.entities[i].entity;
+                console.log('tostatus- ', args.entities[i].entity);
+            }
+        }
+    }
+
+    console.log('ticketId- ', ticketId);
+    var tickdetarr = '';
+    if (ticketId == '' || ticketId == null) {
+        console.log('updateTicket-', session.userData.updateTicket);
+        if (session.userData.updateTicket == null || session.userData.updateTicket == '') {
+            console.log('curTicket-', session.userData.curTicket);
+            if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                var o = session.userData.curTicket;
+                tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+            }
+        } else {
+            tickdetarr = session.userData.updateTicket;
+        }
+    } else {
+        tickdetarr = ticketId;
+    }
+    session.userData.updateTicket = [];
+    session.userData.updateTicket = tickdetarr;
+    session.userData.updateStatus = [];
+    session.userData.updateStatus = tostatus;
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toStatus- ', tostatus);
+
+    if (tickdetarr != null && tickdetarr == '') {
+        console.log('------------- ');
+        session.send('Please provide us valid ticket id.');
+    } else if (tostatus != null && tostatus == '') {
+        console.log('================== ');
+        session.send('Please provide us status to change.');
+    } else {
+        session.beginDialog('updateStatusConfirmation');
+    }
+}]);
 
 
+intents.matches('Update Ticket Status - status', [function (session, args) {
+    console.log('----> args: ', args);
+    var ticketId = '';
+    var tostatus = '';
+    var priority = '';
+    if (args.entities != null) {
+        for (var i = 0; i < args.entities.length; i++) {
+            if (args.entities[i].type == 'ticketid') {
+                ticketId = args.entities[i].entity;
+                console.log('ticketId- ', args.entities[i].entity);
+            }
+            if (args.entities[i].type == 'status') {
+                tostatus = args.entities[i].entity;
+                console.log('tostatus- ', args.entities[i].entity);
+            }
+        }
+    }
+    console.log('ticketId- ', ticketId);
+    var tickdetarr = '';
+    if (ticketId == '' || ticketId == null) {
+        console.log('updateTicket-', session.userData.updateTicket);
+        if (session.userData.updateTicket == null || session.userData.updateTicket == '') {
+            console.log('curTicket-', session.userData.curTicket);
+            if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                var o = session.userData.curTicket;
+                tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+            }
+        } else {
+            tickdetarr = session.userData.updateTicket;
+        }
+    } else {
+        tickdetarr = ticketId;
+    }
+    session.userData.updateTicket = [];
+    session.userData.updateTicket = tickdetarr;
+    session.userData.updateStatus = [];
+    session.userData.updateStatus = tostatus;
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toStatus- ', tostatus);
+
+    if (tickdetarr != null && tickdetarr == '') {
+        console.log('------------- ');
+        session.send('Please provide us valid ticket id.');
+    } else if (tostatus != null && tostatus == '') {
+        console.log('================== ');
+        session.send('Please provide us status to change.');
+    } else {
+        console.log('!!!!!!!!!!!!!!! ');
+        session.beginDialog('updateStatusConfirmation');
+    }
+}]);
+
+bot.dialog('updateStatusConfirmation', function (session) {
+    console.log('-----updateStatusConfirmation---')
+    var tostatus = session.userData.updateStatus;
+    var tickdetarr = session.userData.updateTicket;
+    session.send("Gonna update the status to " + tostatus + " for the ticket id:" + tickdetarr + ". Please confirm.");
+    session.endDialog();
+});
+
+
+intents.matches('Update Ticket Status - yes', [function (session, args) {
+    console.log('--->Update Ticket Status - yes<--- ');
     console.log('updateTicket-', session.userData.updateTicket);
     console.log('updateStatus-', session.userData.updateStatus);
     var status = session.userData.updateStatus;
-    var tickdetarr=session.userData.updateTicket;
-    var params = [status, tickdetarr];
-    var selQuery = "update helpdesk.ticket set status_id = (select status_id from helpdesk.status where status_name=?) where ticket_id IN (?)";
-    if (connection != null) {
-        connection.query(selQuery, params, function (err, result) {
-            if (err) {
-                console.log(' err: ', err);
-                throw err;
-            }
-            console.log(" ------- update status -------- ");
-            console.log(' Update rows affected: ', result.affectedRows);
-            session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
-            session.endDialog();
-        });
+    var tickdetarr = session.userData.updateTicket;
+    if (status != null && status != '') {
+        console.log('status property:' + properties.get(status));
+        statusId = properties.get(status);
     }
-});
+    var url = 'http://192.168.60.222:1337/api/helpdesk/userTicket/modifyStatus?ticketId=' + tickdetarr + '&statusId=' + statusId;
+    console.log('url:-' + url);
+
+    request(url, function (error, response, body) {
+        console.log('------> body: ', body);
+        if (body == undefined || body == null) {
+            session.send("Server is down for maintenance. Kindly do try after some time.");
+        } else {
+            var jsonObj = JSON.parse(body);
+            if (jsonObj.success) {
+                session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
+                //session.userData.updateTicket = {};
+                //session.userData.updateStatus = {};
+                session.endDialog();
+            } else {
+                setTimeout(function () {
+                    session.send('I got with some error. Please try after sometime.');
+                }, 6000);
+            }
+        }
+    });
+}]);
+
+intents.matches('Update Ticket Status - no', [function (session, args) {
+    console.log('--->Update Ticket Status - no<--- ');
+    session.userData.updateTicket = {};
+    session.userData.updateStatus = {};
+
+    var fulfillment =
+        builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
+
+    if (fulfillment && fulfillment.entity != '') {
+        var speech = fulfillment.entity;
+        session.send(speech);
+    } else {
+        session.send('Sorry...I couldnt understand');
+    }
+}]);
 
 intents.matches('Assign Ticket', function (session, args) {
     console.log('----> args: ', args);
@@ -1066,6 +1154,7 @@ intents.matches('Assign Ticket', function (session, args) {
     var severity = '';
     var priority = '';
     var toassign = '';
+    var tickdetarr = '';
     if (args.entities != null) {
         for (var i = 0; i < args.entities.length; i++) {
             if (args.entities[i].type == 'ticketid') {
@@ -1080,33 +1169,42 @@ intents.matches('Assign Ticket', function (session, args) {
     }
 
     if (ticketId == '' || ticketId == null) {
-        console.log('curTicket-', session.userData.curTicket);
-        console.log('curTicket.length-', session.userData.curTicket.length);
-        if (session.userData.curTicket.length > 0) {
-            var o = session.userData.curTicket;
-            var tickdetarr = o.map(function (el) { console.log(el.TICKET_ID); return el.TICKET_ID; });
-        }
-    }else {
-        tickdetarr = ticketId;
-    }
-    console.log('tickdetarr- ', tickdetarr);
-    console.log('toassign- ', toassign);
-    var params = [status, tickdetarr];
-    if (ticketId == null || ticketId == '') {
-        var selQuery = "update helpdesk.ticket  set assigned_to  = ? where ticket_id = ?;";
-        if (connection != null) {
-            connection.query(selQuery, params, function (err, result) {
-                if (err) {
-                    console.log(' err: ', err);
-                    throw err;
-                }
-                console.log(" ------- update status -------- ");
-                console.log(' Update rows affected: ', result.affectedRows);
-                session.send('Status has been updated to ' + status + ' for ticket id:' + ticketId);
-
-            });
+        console.log('updateTicket-', session.userData.updateTicket);
+        if (session.userData.updateTicket == null || session.userData.updateTicket == '') {
+            console.log('curTicket-', session.userData.curTicket);
+            if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                var o = session.userData.curTicket;
+                tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+            }
+        } else {
+            tickdetarr = session.userData.updateTicket;
         }
     } else {
-        session.send('seems there is no valid ticketid,  can you please provide that.');
+        tickdetarr = ticketId;
     }
+    session.userData.updateTicket = tickdetarr;
+    console.log('tickdetarr- ', tickdetarr);
+    console.log('toassign- ', toassign);
+
+    var url = 'http://192.168.60.222:1337/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
+    console.log('url:-' + url);
+
+    request(url, function (error, response, body) {
+        console.log('------> body: ', body);
+        if (body == undefined || body == null) {
+            session.send("Server is down for maintenance. Kindly do try after some time.");
+        } else {
+            var jsonObj = JSON.parse(body);
+            if (jsonObj.success) {
+                session.send("Yaeh. I'ts done. Ticket " + tickdetarr + " has been assigned to " + toassign + ".");
+                session.userData.updateTicket = {};
+                session.userData.updateStatus = {};
+                session.endDialog();
+            } else {
+                setTimeout(function () {
+                    session.send('I got with some error. Please try after sometime.');
+                }, 6000);
+            }
+        }
+    });
 });
