@@ -7,6 +7,7 @@
 
 
 
+
 var restify = require('restify');
 var builder = require('botbuilder');
 var apiairecognizer = require('api-ai-recognizer');
@@ -14,6 +15,8 @@ var HashMap = require('hashmap');
 var map = new HashMap();
 var mysql = require('mysql');
 var request = require('request'); //var request = require('request');
+//var moduleA = require( "./admin.js" );
+// import your routes
 
 var assetId;
 var userId = 'R2527';
@@ -31,7 +34,7 @@ var connection = mysql.createConnection({
 });
 
 // Create chat connector for communicating with the Bot Framework Service
-var connector = new builder.ChatConnector({ 
+var connector = new builder.ChatConnector({
     appId: '3920ca45-4176-43f6-aaf6-be7b4804f750',
     appPassword: 'xonaTNP3)+dzcBQAD6844#='
 });
@@ -43,7 +46,7 @@ server.post('/api/messages', connector.listen());
 var bot = new builder.UniversalBot(connector);
 
 var recognizer = new apiairecognizer('9f3aa1a87cb84cf1a3c2159110a52643'); //63b8f1eb608f4e0ab4e8be8e436aac9e
-                                        
+
 var intents = new builder.IntentDialog({
     recognizers: [recognizer],
     intentThreshold: 0.2,
@@ -61,10 +64,16 @@ bot.dialog('/', intents);
 intents.matches('Default Welcome Intent', function (session, args) {
 
     session.sendTyping();
+    session.userData = {};
+    session.privateConversationData = {};
+    session.conversationData = {};
+    session.dialogData = {};
+    console.log('session.message.user.id', session.message.user.id);
+    console.log('session.message.address.user.name', session.message.address.user.name);
 
     var fulfillment =
         builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-    
+
     if (fulfillment && fulfillment.entity != '') {
         var speech = fulfillment.entity;
         session.send(speech);
@@ -81,13 +90,7 @@ intents.matches('Default Welcome Intent', function (session, args) {
 intents.matches('Default Fallback Intent', function (session, args) {
 
     session.sendTyping();
-    session.userData = {};
-    session.privateConversationData = {};
-    session.conversationData = {};
-    session.dialogData = {};
-    console.log('session.message.user.id', session.message.user.id);
-    console.log('session.message.address.user.name', session.message.address.user.name);
-	
+
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var fulfillment =
             builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
@@ -116,8 +119,8 @@ intents.matches('Generic Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
 
         // This is for Non-supported issues
-        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
-            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+        if (session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
+            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0) {
 
             session.send('Sorry, i can help you on Computer related issues only...!');
 
@@ -150,13 +153,13 @@ intents.matches('Specific Problem With PC', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var userInput = session.message.text.toLowerCase();
         // This is for Non-supported issues
-        if(session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
-            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0){
+        if (session.message.text.toLowerCase().indexOf("printer") >= 0 || session.message.text.toLowerCase().indexOf("scanner") >= 0 || session.message.text.toLowerCase().indexOf("tablet") >= 0 || session.message.text.toLowerCase().indexOf("phone") >= 0
+            || session.message.text.toLowerCase().indexOf("mobile") >= 0 || session.message.text.toLowerCase().indexOf("fax") >= 0 || session.message.text.toLowerCase().indexOf("iPad") >= 0 || session.message.text.toLowerCase().indexOf("iPhone") >= 0) {
             session.send('Sorry, i can help you on Computer related issues only...!');
         } else {
-            
+
             var pcGenericFulfillment =
-            builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
+                builder.EntityRecognizer.findEntity(args.entities, 'Asset_PC_Generic');
 
             if (pcGenericFulfillment && pcGenericFulfillment.entity != '') {
                 console.log(' -----> pcGenericFulfillment.entity: ', pcGenericFulfillment.entity);
@@ -198,8 +201,8 @@ intents.matches('Specific Problem With PC', function (session, args) {
                 }
             }
 
-            if(pcGenericFulfillment == null && pcSpecificFulfillment == null){
-                
+            if (pcGenericFulfillment == null && pcSpecificFulfillment == null) {
+
                 session.send('Can you please specify the type (desktop, laptop, etc.) if it\'s a PC ?');
             }
 
@@ -213,12 +216,12 @@ intents.matches('Specific Problem With PC', function (session, args) {
     map.set('prev_input', session.message.text);
     map.set('ticket_title', session.message.text);
     map.set('ticket_desc', session.message.text);
-    
+
 });
 
 
 intents.matches('Yes Computer Issue', function (session, args) {
-    
+
     session.sendTyping();
 
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
@@ -280,7 +283,7 @@ intents.matches('Do Not Know Computer Id', function (session, args) {
     if (typeof map.get('prev_input') !== 'undefined' && map.get('prev_input')) {
         var fulfillment =
             builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-        
+
         if (fulfillment && fulfillment.entity != '') {
             var speech = fulfillment.entity;
             session.send(speech);
@@ -307,9 +310,9 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
         var mysql = require('mysql');
 
         var userInput = session.message.text.toLowerCase();
-                
+
         var assetFulfillment =
-        builder.EntityRecognizer.findEntity(args.entities, 'Asset');
+            builder.EntityRecognizer.findEntity(args.entities, 'Asset');
         console.log('assetFulfillment: ', assetFulfillment);
 
         if (assetFulfillment && assetFulfillment.entity != '') {
@@ -320,8 +323,8 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
             }
         }
         console.log('1 assetId: ', assetId);
-        if(assetId == '' || typeof assetId === 'undefined'){
-            
+        if (assetId == '' || typeof assetId === 'undefined') {
+
             if (userInput.indexOf('ram-lp') >= 0) {
                 assetId = 'ram-lp';
             } else if (userInput.indexOf('mani-lp') >= 0) {
@@ -337,83 +340,83 @@ intents.matches('Get N Validate Asset Id', function (session, args) {
 
         console.log('2 assetId: ', assetId);
         console.log('userId: ', userId);
-       
-            session.send(' Let me check the Asset ID….'); //ram-lp
-                // Server - 192.168.60.222
-                // Local - 192.168.61.153
-               var url = "http://"+backEndSystemIPPort+"/api/helpdesk/asset/validateAsset?assetId="+assetId+"&userId="+userId;
-               console.log('--First--> url: ',url);
-                request(url, function (error, response, body) {
-                    console.log('------> error: ',error);
-                    
-                    if (!error && response.statusCode == 200) {
-                       
-                        var jsonObj = JSON.parse(body);
-                       
-                        console.log('----> jsonObj: ',jsonObj);
 
-                        if(jsonObj.results){
-                            console.log('----> jsonObj.results - asset_id: ',jsonObj.results[0].asset_id);
-                            console.log('----> jsonObj.results - asset_name: ',jsonObj.results[0].asset_name);
-                                
-                            if(jsonObj.results[0].asset_id && jsonObj.results[0].asset_name){
-                                    
+        session.send(' Let me check the Asset ID….'); //ram-lp
+        // Server - 192.168.60.222
+        // Local - 192.168.61.153
+        var url = "http://" + backEndSystemIPPort + "/api/helpdesk/asset/validateAsset?assetId=" + assetId + "&userId=" + userId;
+        console.log('--First--> url: ', url);
+        request(url, function (error, response, body) {
+            console.log('------> error: ', error);
+
+            if (!error && response.statusCode == 200) {
+
+                var jsonObj = JSON.parse(body);
+
+                console.log('----> jsonObj: ', jsonObj);
+
+                if (jsonObj.results) {
+                    console.log('----> jsonObj.results - asset_id: ', jsonObj.results[0].asset_id);
+                    console.log('----> jsonObj.results - asset_name: ', jsonObj.results[0].asset_name);
+
+                    if (jsonObj.results[0].asset_id && jsonObj.results[0].asset_name) {
+
+                        setTimeout(function () {
+                            session.send(
+                                'OK, I am able to figure out the Asset ID in our asset list.');
+                        }, 6000);
+                        session.sendTyping();
+                        //Call API for Ticket Generation
+                        url = "http://" + backEndSystemIPPort + "/api/helpdesk/userTicket/create?ticket_title=" + map.get('ticket_title') + "&ticket_desc=" + map.get('ticket_desc') + "&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
+                        console.log('--Second--> url: ', url);
+
+                        request(url, function (error, response, body) {
+                            console.log('--error: ', error);
+
+                            if (!error && response.statusCode == 200) {
+
+                                jsonObj = JSON.parse(body);
+
+                                console.log('--2--> jsonObj: ', jsonObj);
+
+                                if (jsonObj) {
+
                                     setTimeout(function () {
                                         session.send(
-                                            'OK, I am able to figure out the Asset ID in our asset list.');
-                                    }, 6000);
-                                    session.sendTyping();
-                                    //Call API for Ticket Generation
-                                    url = "http://"+backEndSystemIPPort+"/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
-                                    console.log('--Second--> url: ',url);
-                                    
-                                    request(url, function (error, response, body) {
-                                        console.log('--error: ',error);
-                                        
-                                        if (!error && response.statusCode == 200) {
+                                            "Thank you, I have created a ticket for you. The ticket id is " + jsonObj.TicketNo + ". Someone from IT department will attend your problem within 24 hours.");
+                                    }, 9000);
 
-                                            jsonObj = JSON.parse(body);
-                                            
-                                            console.log('--2--> jsonObj: ',jsonObj);
-
-                                                if(jsonObj){
-
-                                                    setTimeout(function () {
-                                                        session.send(
-                                                            "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+". Someone from IT department will attend your problem within 24 hours.");
-                                                    }, 9000);
-                                            
-                                                } else {
-                                                    setTimeout(function () {
-                                                        session.send(
-                                                            'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
-                                                    }, 9000);
-                                                }
-
-                                        } else {
-
-                                            setTimeout(function () {
-                                                session.send(
-                                                    'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
-                                            }, 9000);
-
-                                        }
-                                        
-                                    });
-
+                                } else {
+                                    setTimeout(function () {
+                                        session.send(
+                                            'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                    }, 9000);
                                 }
 
-                        } else {
-                            setTimeout(function () {
-                                session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
-                            }, 6000);
-                        }
-                    } else {
-                        setTimeout(function () {
-                            session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
-                        }, 6000);
+                            } else {
+
+                                setTimeout(function () {
+                                    session.send(
+                                        'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                }, 9000);
+
+                            }
+
+                        });
+
                     }
-               });
+
+                } else {
+                    setTimeout(function () {
+                        session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                    }, 6000);
+                }
+            } else {
+                setTimeout(function () {
+                    session.send('The given Asset ID is not in the Asset List. Can you please check again?.');
+                }, 6000);
+            }
+        });
 
     } else {
         session.send('Please begin your conversation, saying " Hi / Hello " ');
@@ -437,88 +440,88 @@ intents.matches('My PC', function (session, args) {
 
         } else {
             session.send('Let me explore....');
-            
-            var url = "http://"+backEndSystemIPPort+"/api/helpdesk/asset/getAssetByUser?&userId="+userId;
-            console.log('----> url: ',url);
-             request(url, function (error, response, body) {
-                 console.log('------> error: ',error);
-                 
-                 if (!error && response.statusCode == 200) {
-                    
-                     var jsonObj = JSON.parse(body);
-                    
-                     console.log('----> jsonObj: ',jsonObj);
 
-                     if(jsonObj.results){
-                         console.log('----> jsonObj.results - asset_id: ',jsonObj.results[0].asset_id);
-                         console.log('----> jsonObj.results - asset_name: ',jsonObj.results[0].asset_name);
-                         var retrievedAssetFromDB = jsonObj.results[0].asset_name;
-                             
-                         if(jsonObj.results[0].asset_id && jsonObj.results[0].asset_name){
-                                 
-                                 setTimeout(function () {
-                                     session.send(
-                                         'OK, I am able to figure out the Asset ID in our asset list.');
-                                 }, 6000);
+            var url = "http://" + backEndSystemIPPort + "/api/helpdesk/asset/getAssetByUser?&userId=" + userId;
+            console.log('----> url: ', url);
+            request(url, function (error, response, body) {
+                console.log('------> error: ', error);
 
-                                 session.sendTyping();
-                                 
-                                 setTimeout(function () {
-                                    console.log('----> retrievedAssetFromDB: ',retrievedAssetFromDB);
-                                    session.send(
-                                        "Your Asset id is "+retrievedAssetFromDB+".");
-                                }, 9000);
+                if (!error && response.statusCode == 200) {
 
-                                //Call API for Ticket Generation
-                                url = "http://"+backEndSystemIPPort+"/api/helpdesk/userTicket/create?ticket_title="+map.get('ticket_title')+"&ticket_desc="+map.get('ticket_desc')+"&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
-                                console.log('--Second--> url: ',url);
-                                
-                                request(url, function (error, response, body) {
-                                    console.log('--error: ',error);
-                                    
-                                    if (!error && response.statusCode == 200) {
+                    var jsonObj = JSON.parse(body);
 
-                                        jsonObj = JSON.parse(body);
-                                        
-                                        console.log('--2--> jsonObj: ',jsonObj);
+                    console.log('----> jsonObj: ', jsonObj);
 
-                                            if(jsonObj){
+                    if (jsonObj.results) {
+                        console.log('----> jsonObj.results - asset_id: ', jsonObj.results[0].asset_id);
+                        console.log('----> jsonObj.results - asset_name: ', jsonObj.results[0].asset_name);
+                        var retrievedAssetFromDB = jsonObj.results[0].asset_name;
 
-                                                setTimeout(function () {
-                                                    session.send(
-                                                        "Thank you, I have created a ticket for you. The ticket id is "+jsonObj.TicketNo+". Someone from IT department will attend your problem within 24 hours.");
-                                                }, 10000);
-                                        
-                                            } else {
-                                                setTimeout(function () {
-                                                    session.send(
-                                                        'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
-                                                }, 10000);
-                                            }
+                        if (jsonObj.results[0].asset_id && jsonObj.results[0].asset_name) {
 
-                                    } else {
+                            setTimeout(function () {
+                                session.send(
+                                    'OK, I am able to figure out the Asset ID in our asset list.');
+                            }, 6000);
+
+                            session.sendTyping();
+
+                            setTimeout(function () {
+                                console.log('----> retrievedAssetFromDB: ', retrievedAssetFromDB);
+                                session.send(
+                                    "Your Asset id is " + retrievedAssetFromDB + ".");
+                            }, 9000);
+
+                            //Call API for Ticket Generation
+                            url = "http://" + backEndSystemIPPort + "/api/helpdesk/userTicket/create?ticket_title=" + map.get('ticket_title') + "&ticket_desc=" + map.get('ticket_desc') + "&priority=1&severity=1&status=1&asset=ram-lp&created_by=S8888";
+                            console.log('--Second--> url: ', url);
+
+                            request(url, function (error, response, body) {
+                                console.log('--error: ', error);
+
+                                if (!error && response.statusCode == 200) {
+
+                                    jsonObj = JSON.parse(body);
+
+                                    console.log('--2--> jsonObj: ', jsonObj);
+
+                                    if (jsonObj) {
 
                                         setTimeout(function () {
                                             session.send(
+                                                "Thank you, I have created a ticket for you. The ticket id is " + jsonObj.TicketNo + ". Someone from IT department will attend your problem within 24 hours.");
+                                        }, 10000);
+
+                                    } else {
+                                        setTimeout(function () {
+                                            session.send(
                                                 'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
-                                        }, 9000);
-
+                                        }, 10000);
                                     }
-                                    
-                                });
 
-                             }
+                                } else {
 
-                     } else {
-                         setTimeout(function () {
-                             session.send('Sorry, I am unable to figure out the Asset ID in our asset list.');
-                         }, 6000);
-                     }
-                 } else {
-                     setTimeout(function () {
+                                    setTimeout(function () {
+                                        session.send(
+                                            'Unable to create a ticket for you. Please try after some time. Sorry for the inconvenience.');
+                                    }, 9000);
+
+                                }
+
+                            });
+
+                        }
+
+                    } else {
+                        setTimeout(function () {
+                            session.send('Sorry, I am unable to figure out the Asset ID in our asset list.');
+                        }, 6000);
+                    }
+                } else {
+                    setTimeout(function () {
                         session.send('Sorry, I am unable to figure out the Asset ID in our asset list.');
-                     }, 6000);
-                 }
+                    }, 6000);
+                }
             });
 
 
@@ -630,16 +633,16 @@ intents.matches('Cryptic Request', function (session, args) {
 // Enabling SMALL TALK
 
 intents.onDefault(function (session, args) {
-   console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
-   console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
-    
+    console.log(' -----> map.get(prev_intent): ', map.get('prev_intent'));
+    console.log(' -----> map.get(prev_input): ', map.get('prev_input'));
+
     session.sendTyping();
 
     /*
     if (typeof map.get('prev_intent') === 'undefined' && typeof map.get('prev_input') === 'undefined') {
         session.send("Hello, I am Liz, a virtual agent for IT related services.  At the moment, I can help you to fix your problems related to laptop and desktop and can create a ticket if needed. For all other queries, you may want to call the IT helpdesk toll free number 1-800-123-4567.  How can I help you now ?");
     } else  */
-    
+
     if (typeof map.get('prev_intent') !== 'undefined' && map.get('prev_intent') &&
         (map.get('prev_intent') == 'Get N Validate Asset Id' ||
             map.get('prev_intent') == 'Yes Computer Issue')) {
@@ -665,3 +668,4 @@ intents.onDefault(function (session, args) {
     map.set('prev_input', session.message.text);
 });
 
+require('./admin.js')(intents,bot,request);
