@@ -6,11 +6,12 @@
   Purpose: This is server side request processor cum back-end (sails) wrapper
   Module description: This handles the intents specific to administrator (user).
 */
-module.exports = function (intents, bot, request,builder) {
+module.exports = function (intents, bot,builder) {
 
     var PropertiesReader = require('properties-reader');
     var path = require("path");
     var properties = PropertiesReader(path.resolve(__dirname, 'system.properties'));
+    var request = require('request'); 
 
 
     /*This intent will show the list of available ticket from the sails system
