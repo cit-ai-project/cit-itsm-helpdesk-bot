@@ -6,7 +6,7 @@
   Purpose: This is server side request processor cum back-end (sails) wrapper
   Module description: This handles the intents specific to administrator (user).
 */
-module.exports = function (intents, bot, request) {
+module.exports = function (intents, bot, request,builder) {
 
     var PropertiesReader = require('properties-reader');
     var path = require("path");
@@ -154,7 +154,7 @@ module.exports = function (intents, bot, request) {
             userId = 'S8888';
         }
         console.log('statusId-' + statusId + 'severityId-' + severityId + 'priorityId-' + priorityId + 'userId-' + userId);
-        
+
         /*Connecting sails api to retrive tickets*/
         var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
         console.log('url:-' + url);
@@ -450,6 +450,7 @@ module.exports = function (intents, bot, request) {
                         session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
                         //session.userData.updateTicket = {};
                         //session.userData.updateStatus = {};
+                        
                         session.endDialog();
                     } else {
                         setTimeout(function () {
@@ -506,46 +507,65 @@ module.exports = function (intents, bot, request) {
             }
 
             if (ticketId == '' || ticketId == null) {
-                console.log('updateTicket-', session.userData.updateTicket);
-                if (session.userData.updateTicket == null || session.userData.updateTicket == '') {
-                    console.log('curTicket-', session.userData.curTicket);
-                    if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
-                        var o = session.userData.curTicket;
-                        tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
-                    }
-                } else {
+                if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                    var o = session.userData.curTicket;
+                    tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+                } else if (session.userData.updateTicket != null || session.userData.updateTicket != '' || session.userData.updateTicket.length > 0) {
                     tickdetarr = session.userData.updateTicket;
+                }else{
+                    tickdetarr='';
                 }
             } else {
                 tickdetarr = ticketId;
             }
+
+            /* if (ticketId == '' || ticketId == null) {
+ 
+ 
+                 console.log('updateTicket-', session.userData.updateTicket);
+                 if (session.userData.updateTicket == null || session.userData.updateTicket == '' || session.userData.updateTicket.length==0) {
+                     console.log('curTicket-', session.userData.curTicket);
+                     if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
+                         var o = session.userData.curTicket;
+                         tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
+                     }
+                 } else {
+                     tickdetarr = session.userData.updateTicket;
+                 }
+             } else {
+                 tickdetarr = ticketId;
+             }*/
             session.userData.updateTicket = tickdetarr;
             console.log('tickdetarr- ', tickdetarr);
             console.log('toassign- ', toassign);
+            if (tickdetarr == '' || tickdetarr == null) {
+                session.send("You don't have valid ticket ID. ");
+            } else {
+                var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
+                console.log('url:-' + url);
 
-            var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
-            console.log('url:-' + url);
-
-            request(url, function (error, response, body) {
-                console.log('------> body: ', body);
-                if (body == undefined || body == null) {
-                    session.send("Server is down for maintenance. Kindly do try after some time.");
-                } else {
-                    var jsonObj = JSON.parse(body);
-                    if (jsonObj.success) {
-                        session.send("Yaeh. I'ts done. Ticket " + tickdetarr + " has been assigned to " + toassign + ".");
-                        session.userData.updateTicket = {};
-                        session.userData.updateStatus = {};
-                        session.endDialog();
+                request(url, function (error, response, body) {
+                    console.log('------> body: ', body);
+                    if (body == undefined || body == null) {
+                        session.send("Server is down for maintenance. Kindly do try after some time.");
                     } else {
-                        setTimeout(function () {
-                            session.send('I got with some error. Please try after sometime.');
-                        }, 6000);
+                        var jsonObj = JSON.parse(body);
+                        if (jsonObj.success) {
+                            session.send("Yaeh. I'ts done. Ticket " + tickdetarr + " has been assigned to " + toassign + ".");
+                            //session.userData.updateTicket = {};
+                            //session.userData.updateStatus = {};
+                            session.endDialog();
+                        } else {
+                            setTimeout(function () {
+                                session.send('I got with some error. Please try after sometime.');
+                            }, 6000);
+                        }
                     }
-                }
-            });
+                });
+            }
         } else {
             session.send('You are not eligible to access this data.');
         }
+
     });
 }
