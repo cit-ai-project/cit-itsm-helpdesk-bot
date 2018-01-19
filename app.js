@@ -37,4 +37,4 @@ bot.dialog('/', intents);
 
 //Routing to respective modules.
 require('./user.js')(intents,bot,builder);
-require('./admin.js')(intents,bot);
+require('./admin.js')(intents,bot,builder);
