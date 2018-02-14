@@ -88,9 +88,9 @@ module.exports = function (intents, bot,builder) {
                                 tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '<BR>';
                             }
                             if (status == '' || status == null) {
-                                session.send("**Here you go. Check down the below tickets.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                                session.send("**Here you go. Check down the below tickets.**< BR > &nbsp;&nbsp; < BR >" + tickets);
                             } else {
-                                session.send("**Following are the tickets with '" + status + "'  status.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                                session.send("**Following are the tickets with '" + status + "'  status.**< BR > &nbsp;&nbsp; < BR >" + tickets);
                             }
                         } else {
                             setTimeout(function () {
@@ -172,12 +172,12 @@ module.exports = function (intents, bot,builder) {
                         var tickets = '';
                         for (var idx in jsonObj.results) {
                             var item = jsonObj.results[idx];
-                            tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '<BR>';
+                            tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '< BR >';
                         }
                         if (status == '' || status == null) {
-                            session.send("**Here you go. Check down the below tickets.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                            session.send("**Here you go. Check down the below tickets.**< BR > &nbsp;&nbsp; < BR >" + tickets);
                         } else {
-                            session.send("**Following are the tickets with '" + status + "'  status.**<BR> &nbsp;&nbsp; <BR>" + tickets);
+                            session.send("**Following are the tickets with '" + status + "'  status.**< BR > &nbsp;&nbsp; < BR >" + tickets);
                         }
                     } else {
                         setTimeout(function () {
@@ -227,7 +227,7 @@ module.exports = function (intents, bot,builder) {
                         console.log('curTicket-', session.userData.curTicket);
                         var tickets = '';
                         var item = jsonObj.results;
-                        console.log('**Ticket ID: **' + item[0].id + '<BR>**Ticket Title: **' + item[0].ticket_title + '<BR>**Title Desc:**' + item[0].ticket_desc + '<BR>**Status:** ' + item[0].status + '<BR> **Severity:**' + item[0].severity + '<BR> **Assigned To:**' + item[0].assigned_to + '')
+                        console.log('**Ticket ID: **' + item[0].id + '< BR >**Ticket Title: **' + item[0].ticket_title + '<BR>**Title Desc:**' + item[0].ticket_desc + '<BR>**Status:** ' + item[0].status + '<BR> **Severity:**' + item[0].severity + '<BR> **Assigned To:**' + item[0].assigned_to + '')
                         var ticketsDetails = '**Ticket ID:** ' + item[0].id + '<BR>**Ticket Title:** ' + item[0].ticket_title + '<BR>**Title Desc:** ' + item[0].ticket_desc + '<BR>**Status:** ' + item[0].status + '<BR>**Severity:** ' + item[0].severity + '<BR>**Assigned To:** ' + item[0].assigned_to + '';
                         session.send("**Check down the ticket details.** <BR>&nbsp;&nbsp; <BR>" + ticketsDetails);
 
