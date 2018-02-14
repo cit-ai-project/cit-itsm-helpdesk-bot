@@ -69,7 +69,7 @@ module.exports = function (intents, bot,builder) {
             console.log('statusId-' + statusId + 'priorityId-' + priorityId + 'severityId-' + severityId + 'userId-' + userId);
 
             /*Connecting sails api to retrive tickets*/
-            var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
+            var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
             console.log('url:-' + url);
 
             request(url, function (error, response, body) {
@@ -157,7 +157,7 @@ module.exports = function (intents, bot,builder) {
         console.log('statusId-' + statusId + 'severityId-' + severityId + 'priorityId-' + priorityId + 'userId-' + userId);
 
         /*Connecting sails api to retrive tickets*/
-        var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
+        var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketStatus=' + statusId + '&ticketSeverity=' + severityId + '&ticketPriority=' + priorityId + '&userId=' + userId + '';
         console.log('url:-' + url);
 
         request(url, function (error, response, body) {
@@ -212,7 +212,7 @@ module.exports = function (intents, bot,builder) {
             console.log('ticketId ', ticketId);
             ticketId = '';
         }
-        var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketId=' + ticketId;
+        var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/getTickets?ticketId=' + ticketId;
         console.log('url:-' + url);
 
         request(url, function (error, response, body) {
@@ -438,7 +438,7 @@ module.exports = function (intents, bot,builder) {
                 console.log('status property:' + properties.get(status));
                 statusId = properties.get(status);
             }
-            var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyStatus?ticketId=' + tickdetarr + '&statusId=' + statusId;
+            var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyStatus?ticketId=' + tickdetarr + '&statusId=' + statusId;
             console.log('url:-' + url);
 
             request(url, function (error, response, body) {
@@ -448,7 +448,7 @@ module.exports = function (intents, bot,builder) {
                 } else {
                     var jsonObj = JSON.parse(body);
                     if (jsonObj.success) {
-                        session.send('Status has been updated to ' + status + ' for ticket id:' + tickdetarr);
+                        session.send('Yaeh. Its done. Now status has been updated to ' + status + ' for ticket id: ' + tickdetarr);
                         //session.userData.updateTicket = {};
                         //session.userData.updateStatus = {};
                         
@@ -542,7 +542,7 @@ module.exports = function (intents, bot,builder) {
             if (tickdetarr == '' || tickdetarr == null) {
                 session.send("You don't have valid ticket ID. ");
             } else {
-                var url = 'http://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
+                var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
                 console.log('url:-' + url);
 
                 request(url, function (error, response, body) {
