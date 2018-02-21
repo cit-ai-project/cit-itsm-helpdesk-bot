@@ -85,12 +85,12 @@ module.exports = function (intents, bot,builder) {
                             var tickets = '';
                             for (var idx in jsonObj.results) {
                                 var item = jsonObj.results[idx];
-                                tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '<BR>';
+                                tickets = tickets + '- ' + item.id + ' -- ' + item.ticket_title + '  \n';
                             }
                             if (status == '' || status == null) {
-                                session.send("**Here you go. Check down the below tickets.**< BR > &nbsp;&nbsp; < BR >" + tickets);
+                                session.send("**Here you go. Check down the below tickets.**  \n" + tickets);
                             } else {
-                                session.send("**Following are the tickets with '" + status + "'  status.**< BR > &nbsp;&nbsp; < BR >" + tickets);
+                                session.send("**Following are the tickets with '" + status + "'  status.**  \n" + tickets);
                             }
                         } else {
                             setTimeout(function () {
@@ -172,12 +172,12 @@ module.exports = function (intents, bot,builder) {
                         var tickets = '';
                         for (var idx in jsonObj.results) {
                             var item = jsonObj.results[idx];
-                            tickets = tickets + '- ' + item.id + ' &nbsp;&nbsp;&nbsp;' + item.ticket_title + '< BR >';
+                            tickets = tickets + '- ' + item.id + ' -- ' + item.ticket_title + '  \n';
                         }
                         if (status == '' || status == null) {
-                            session.send("**Here you go. Check down the below tickets.**< BR > &nbsp;&nbsp; < BR >" + tickets);
+                            session.send("**Here you go. Check down the below tickets.**  \n" + tickets);
                         } else {
-                            session.send("**Following are the tickets with '" + status + "'  status.**< BR > &nbsp;&nbsp; < BR >" + tickets);
+                            session.send("**Following are the tickets with '" + status + "'  status.**  \n" + tickets);
                         }
                     } else {
                         setTimeout(function () {
@@ -227,9 +227,9 @@ module.exports = function (intents, bot,builder) {
                         console.log('curTicket-', session.userData.curTicket);
                         var tickets = '';
                         var item = jsonObj.results;
-                        console.log('**Ticket ID: **' + item[0].id + '< BR >**Ticket Title: **' + item[0].ticket_title + '<BR>**Title Desc:**' + item[0].ticket_desc + '<BR>**Status:** ' + item[0].status + '<BR> **Severity:**' + item[0].severity + '<BR> **Assigned To:**' + item[0].assigned_to + '')
-                        var ticketsDetails = '**Ticket ID:** ' + item[0].id + '<BR>**Ticket Title:** ' + item[0].ticket_title + '<BR>**Title Desc:** ' + item[0].ticket_desc + '<BR>**Status:** ' + item[0].status + '<BR>**Severity:** ' + item[0].severity + '<BR>**Assigned To:** ' + item[0].assigned_to + '';
-                        session.send("**Check down the ticket details.** <BR>&nbsp;&nbsp; <BR>" + ticketsDetails);
+                        console.log('**Ticket ID: **' + item[0].id + '  \n **Ticket Title: **' + item[0].ticket_title + '  \n **Title Desc:**' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:**' + item[0].severity + '  \n **Assigned To:**' + item[0].assigned_to + '')
+                        var ticketsDetails = '**Ticket ID:** ' + item[0].id + '  \n **Ticket Title:** ' + item[0].ticket_title + '  \n **Title Desc:** ' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:** ' + item[0].severity + '  \n **Assigned To:** ' + item[0].assigned_to + '';
+                        session.send("**Check down the ticket details.**   \n\n" + ticketsDetails);
 
                     } else {
                         setTimeout(function () {
@@ -245,7 +245,7 @@ module.exports = function (intents, bot,builder) {
         });
     });
 
-    /*This intent is to update the status of the ticket ID.This intent has follow-up event for ticket ID and status ID validation.*/
+    /*This intent is to update the status of the ticket ID.This   has follow-up event for ticket ID and status ID validation.*/
     intents.matches('Update Ticket Status', [function (session, args) {
         console.log('----> args: ', args);
         var ticketId = '';
@@ -424,7 +424,7 @@ module.exports = function (intents, bot,builder) {
     });
 
     /*This intent is a follow-up event for 'Update Ticket Status' intent. 
-    Here it updates the status ID for the particular ticketID.*/
+    Here it updates the status ID for  the particular ticketID.*/
     intents.matches('Update Ticket Status - yes', [function (session, args) {
         console.log('--->Update Ticket Status - yes<--- ');
         console.log('updateTicket-', session.userData.updateTicket);
