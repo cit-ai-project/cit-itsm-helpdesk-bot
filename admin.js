@@ -152,7 +152,11 @@
                 priorityId = properties.get(priority);
             }
             if (curUser != null && curUser != '') {
-                userId = 'S8888';
+                //userId = 'S8888';
+                console.log('name:' + session.message.address.user.name);
+                console.log('name:' + properties.get(session.message.address.user.name));
+                userId = properties.get(session.message.address.user.name);
+                
             }
             console.log('statusId-' + statusId + 'severityId-' + severityId + 'priorityId-' + priorityId + 'userId-' + userId);
 
@@ -528,8 +532,9 @@
 
                 session.userData.updateTicket = tickdetarr;
                 console.log('tickdetarr- ', tickdetarr);
-                console.log('toassign- ', toassign);
+                console.log('property toassign-', properties.get(toassign));
                 toassign = properties.get(toassign);
+                console.log('toassign- ', toassign);
                 if (tickdetarr == '' || tickdetarr == null) {
                     session.send("You don't have valid ticket ID. ");
                 } else {
