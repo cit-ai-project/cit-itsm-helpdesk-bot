@@ -227,11 +227,14 @@
                             console.log('curTicket-', session.userData.curTicket);
                             var tickets = '';
                             var item = jsonObj.results;
+                            var assigned='';
                             if(item[0].assigned_to==null || item[0].assigned_to==''){
-                                item[0].assigned_to='Not Assigned';
+                                assigned='Not Assigned';
+                            }else {
+                                assigned=properties.get(item[0].assigned_to);
                             }
-                            console.log('**Ticket ID: **' + item[0].id + '  \n **Ticket Title: **' + item[0].ticket_title + '  \n **Title Desc:**' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:**' + item[0].severity + '  \n **Assigned To:**' + item[0].assigned_to + '')
-                            var ticketsDetails = ' **Ticket ID:** ' + item[0].id + '  \n**Ticket Title:** ' + item[0].ticket_title + '  \n **Title Desc:** ' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:** ' + item[0].severity + '  \n **Assigned To:** ' + item[0].assigned_to + '';
+                            console.log('**Ticket ID: **' + item[0].id + '  \n **Ticket Title: **' + item[0].ticket_title + '  \n **Title Desc:**' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:**' + item[0].severity + '  \n **Assigned To:**' + assigned + '')
+                            var ticketsDetails = '  \n **Ticket ID:** ' + item[0].id + '  \n**Ticket Title:** ' + item[0].ticket_title + '  \n **Title Desc:** ' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:** ' + item[0].severity + '  \n **Assigned To:** ' + assigned + '';
                             session.send("**Check down the ticket details.**   \n  \n" + ticketsDetails);
 
                         } else {
@@ -523,25 +526,10 @@
                     tickdetarr = ticketId;
                 }
 
-                /* if (ticketId == '' || ticketId == null) {
-    
-    
-                    console.log('updateTicket-', session.userData.updateTicket);
-                    if (session.userData.updateTicket == null || session.userData.updateTicket == '' || session.userData.updateTicket.length==0) {
-                        console.log('curTicket-', session.userData.curTicket);
-                        if (session.userData.curTicket != null && session.userData.curTicket.length > 0) {
-                            var o = session.userData.curTicket;
-                            tickdetarr = o.map(function (el) { console.log(el.id); return el.id; });
-                        }
-                    } else {
-                        tickdetarr = session.userData.updateTicket;
-                    }
-                } else {
-                    tickdetarr = ticketId;
-                }*/
                 session.userData.updateTicket = tickdetarr;
                 console.log('tickdetarr- ', tickdetarr);
                 console.log('toassign- ', toassign);
+                toassign = properties.get(toassign);
                 if (tickdetarr == '' || tickdetarr == null) {
                     session.send("You don't have valid ticket ID. ");
                 } else {
