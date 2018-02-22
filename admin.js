@@ -238,7 +238,7 @@
                                 assigned=properties.get(item[0].assigned_to);
                             }
                             console.log('**Ticket ID: **' + item[0].id + '  \n **Ticket Title: **' + item[0].ticket_title + '  \n **Title Desc:**' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:**' + item[0].severity + '  \n **Assigned To:**' + assigned + '')
-                            var ticketsDetails = '  \n **Ticket ID:** ' + item[0].id + '  \n**Ticket Title:** ' + item[0].ticket_title + '  \n **Title Desc:** ' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:** ' + item[0].severity + '  \n **Assigned To:** ' + assigned + '';
+                            var ticketsDetails = '  \n **Ticket ID:** ' + item[0].id + '  \n **Ticket Title:** ' + item[0].ticket_title + '  \n **Title Desc:** ' + item[0].ticket_desc + '  \n **Status:** ' + item[0].status + '  \n **Severity:** ' + item[0].severity + '  \n **Assigned To:** ' + assigned + '';
                             session.send("**Check down the ticket details.**   \n  \n" + ticketsDetails);
 
                         } else {
@@ -533,12 +533,12 @@
                 session.userData.updateTicket = tickdetarr;
                 console.log('tickdetarr- ', tickdetarr);
                 console.log('property toassign-', properties.get(toassign));
-                toassign = properties.get(toassign);
-                console.log('toassign- ', toassign);
+                var assign = properties.get(toassign);
+                console.log('assign- ', assign);
                 if (tickdetarr == '' || tickdetarr == null) {
                     session.send("You don't have valid ticket ID. ");
                 } else {
-                    var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + toassign;
+                    var url = 'https://' + properties.get('sailsUrl') + '/api/helpdesk/userTicket/modifyAssignedto?ticketId=' + tickdetarr + '&userId=' + assign;
                     console.log('url:-' + url);
 
                     request(url, function (error, response, body) {
@@ -549,8 +549,6 @@
                             var jsonObj = JSON.parse(body);
                             if (jsonObj.success) {
                                 session.send("Yaeh. I'ts done. Ticket " + tickdetarr + " has been assigned to " + toassign + ".");
-                                //session.userData.updateTicket = {};
-                                //session.userData.updateStatus = {};
                                 session.endDialog();
                             } else {
                                 setTimeout(function () {
