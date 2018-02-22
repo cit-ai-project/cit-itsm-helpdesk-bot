@@ -152,10 +152,10 @@
                 priorityId = properties.get(priority);
             }
             if (curUser != null && curUser != '') {
-                //userId = 'S8888';
+                userId = 'V2528';
                 console.log('name:' + session.message.address.user.name);
                 console.log('name:' + properties.get(session.message.address.user.name));
-                userId = properties.get(session.message.address.user.name);
+                //userId = properties.get(session.message.address.user.name);
                 
             }
             console.log('statusId-' + statusId + 'severityId-' + severityId + 'priorityId-' + priorityId + 'userId-' + userId);
